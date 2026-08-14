@@ -1,0 +1,122 @@
+[
+    {
+        "id": "genre-001",
+        "slug": "action",
+        "name": "Action",
+        "iconName": "FiZap",
+        "color": "from-amber-500 to-rose-600",
+        "bgGlow": "rgba(244, 63, 94, 0.15)",
+        "count": 24,
+        "description": "High-octane blockbusters, intense martial arts, explosive combat, and adrenaline-pumping chases."
+    },
+    {
+        "id": "genre-002",
+        "slug": "adventure",
+        "name": "Adventure",
+        "iconName": "FiCompass",
+        "color": "from-emerald-500 to-teal-700",
+        "bgGlow": "rgba(20, 184, 166, 0.15)",
+        "count": 18,
+        "description": "Epic quests, uncharted worlds, perilous journeys, and breathtaking wilderness explorations."
+    },
+    {
+        "id": "genre-003",
+        "slug": "animation",
+        "name": "Animation",
+        "iconName": "FiFilm",
+        "color": "from-pink-500 to-purple-600",
+        "bgGlow": "rgba(217, 70, 239, 0.15)",
+        "count": 12,
+        "description": "Stunning visuals, anime masterworks, CGI breakthroughs, and timeless hand-drawn tales."
+    },
+    {
+        "id": "genre-004",
+        "slug": "comedy",
+        "name": "Comedy",
+        "iconName": "FiSmile",
+        "color": "from-yellow-400 to-amber-600",
+        "bgGlow": "rgba(245, 158, 11, 0.15)",
+        "count": 15,
+        "description": "Clever satire, hilarious sitcoms, witty dark humor, and feel-good laugh-out-loud favorites."
+    },
+    {
+        "id": "genre-005",
+        "slug": "crime",
+        "name": "Crime",
+        "iconName": "FiShield",
+        "color": "from-slate-600 to-zinc-900",
+        "bgGlow": "rgba(100, 116, 139, 0.15)",
+        "count": 21,
+        "description": "Undercover investigations, syndicate kingpins, gritty heists, and gripping underworld drama."
+    },
+    {
+        "id": "genre-006",
+        "slug": "drama",
+        "name": "Drama",
+        "iconName": "FiFeather",
+        "color": "from-purple-700 to-slate-900",
+        "bgGlow": "rgba(147, 51, 234, 0.15)",
+        "count": 33,
+        "description": "Deep emotional journeys, character studies, profound narratives, and award-winning storytelling."
+    },
+    {
+        "id": "genre-007",
+        "slug": "fantasy",
+        "name": "Fantasy",
+        "iconName": "FiStar",
+        "color": "from-fuchsia-500 to-purple-800",
+        "bgGlow": "rgba(168, 85, 247, 0.15)",
+        "count": 16,
+        "description": "Mythical kingdoms, ancient sorcery, legendary creatures, and enchanting magical universes."
+    },
+    {
+        "id": "genre-008",
+        "slug": "horror",
+        "name": "Horror",
+        "iconName": "FiEye",
+        "color": "from-red-600 to-neutral-900",
+        "bgGlow": "rgba(220, 38, 38, 0.15)",
+        "count": 14,
+        "description": "Supernatural hauntings, psychological terror, spine-chilling suspense, and monster horrors."
+    },
+    {
+        "id": "genre-009",
+        "slug": "mystery",
+        "name": "Mystery",
+        "iconName": "FiHelpCircle",
+        "color": "from-violet-600 to-neutral-900",
+        "bgGlow": "rgba(124, 58, 237, 0.15)",
+        "count": 19,
+        "description": "Whodunit puzzles, detective sleuths, enigmatic occurrences, and mind-bending revelations."
+    },
+    {
+        "id": "genre-010",
+        "slug": "romance",
+        "name": "Romance",
+        "iconName": "FiHeart",
+        "color": "from-rose-400 to-pink-600",
+        "bgGlow": "rgba(244, 63, 94, 0.15)",
+        "count": 11,
+        "description": "Passionate love affairs, serendipitous encounters, heartfelt connections, and modern romance."
+    },
+    {
+        "id": "genre-011",
+        "slug": "sci-fi",
+        "name": "Sci-Fi",
+        "iconName": "FiCpu",
+        "color": "from-emerald-500 to-teal-800",
+        "bgGlow": "rgba(16, 185, 129, 0.15)",
+        "count": 28,
+        "description": "Futuristic civilizations, space exploration, cybernetics, time paradoxes, and alien worlds."
+    },
+    {
+        "id": "genre-012",
+        "slug": "thriller",
+        "name": "Thriller",
+        "iconName": "FiTarget",
+        "color": "from-amber-600 to-stone-900",
+        "bgGlow": "rgba(217, 119, 6, 0.15)",
+        "count": 22,
+        "description": "Edge-of-your-seat suspense, espionage, psychological headgames, and high-stakes conspiracies."
+    }
+]
