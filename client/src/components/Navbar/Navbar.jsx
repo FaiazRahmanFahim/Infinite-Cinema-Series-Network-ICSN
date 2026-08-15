@@ -11,8 +11,9 @@ import {
     FiGrid,
     FiChevronDown,
     FiCheck,
+    FiStar,
 } from 'react-icons/fi'
-import { NavLink, Link, useLocation, useSearchParams } from 'react-router'
+import { NavLink, Link, useLocation, useSearchParams, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from '../ui/ThemeToggle'
 import GenreIcon from '../ui/GenreIcon'
@@ -22,23 +23,45 @@ const Navbar = () => {
     const [searchFocused, setSearchFocused] = useState(false)
     const [genresOpen, setGenresOpen] = useState(false)
     const [genres, setGenres] = useState([])
+    const [allMedia, setAllMedia] = useState([])
     const genresRef = useRef(null)
+    const searchRef = useRef(null)
+    const mobileSearchRef = useRef(null)
     const location = useLocation()
-    const [searchParams] = useSearchParams()
-    const currentGenreFilter = searchParams.get('genre')
+    const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
 
-    // Fetch genres data on mount
+    const urlSearchQuery = searchParams.get('search') || ''
+    const currentGenreFilter = searchParams.get('genre')
+    const [searchValue, setSearchValue] = useState(urlSearchQuery)
+
+    // Sync input value with URL search param
+    useEffect(() => {
+        setSearchValue(urlSearchQuery)
+    }, [urlSearchQuery])
+
+    // Fetch genres data and all media for quick search
     useEffect(() => {
         fetch('/genres.json')
             .then((res) => res.json())
             .then(setGenres)
             .catch(() => setGenres([]))
+
+        Promise.all([
+            fetch('/popularMovies.json').then((r) => r.json()),
+            fetch('/popularSeries.json').then((r) => r.json()),
+        ])
+            .then(([movies, series]) => {
+                setAllMedia([...movies, ...series])
+            })
+            .catch(() => setAllMedia([]))
     }, [])
 
     // Automatically close dropdowns on route change
     useEffect(() => {
         setGenresOpen(false)
         setMobileMenuOpen(false)
+        setSearchFocused(false)
     }, [location.pathname, location.search])
 
     // Close dropdown on outside click
@@ -47,10 +70,17 @@ const Navbar = () => {
             if (genresRef.current && !genresRef.current.contains(e.target)) {
                 setGenresOpen(false)
             }
+            if (
+                searchRef.current && !searchRef.current.contains(e.target) &&
+                mobileSearchRef.current && !mobileSearchRef.current.contains(e.target)
+            ) {
+                setSearchFocused(false)
+            }
         }
         function handleKeyDown(e) {
             if (e.key === 'Escape') {
                 setGenresOpen(false)
+                setSearchFocused(false)
             }
         }
         document.addEventListener('mousedown', handleClickOutside)
@@ -73,8 +103,70 @@ const Navbar = () => {
         const basePath = ['/movies', '/series', '/trending'].includes(location.pathname)
             ? location.pathname
             : '/'
-        return `${basePath}?genre=${encodeURIComponent(genreName)}`
+        const params = new URLSearchParams(searchParams)
+        params.set('genre', genreName)
+        return `${basePath}?${params.toString()}`
     }
+
+    // Handle search submission
+    const handleSearchSubmit = (e) => {
+        if (e) e.preventDefault()
+        const query = searchValue.trim()
+        setSearchFocused(false)
+        setMobileMenuOpen(false)
+
+        const currentPath = location.pathname
+        const targetPath = ['/movies', '/series', '/trending', '/'].includes(currentPath)
+            ? currentPath
+            : '/movies'
+
+        const params = new URLSearchParams()
+        if (currentGenreFilter) {
+            params.set('genre', currentGenreFilter)
+        }
+        if (query) {
+            params.set('search', query)
+        }
+
+        navigate(`${targetPath}${params.toString() ? `?${params.toString()}` : ''}`)
+    }
+
+    // Handle search input change (and live URL sync if desired)
+    const handleSearchChange = (e) => {
+        const value = e.target.value
+        setSearchValue(value)
+
+        // If user clears the input box completely, remove the search param
+        if (value.trim() === '' && urlSearchQuery) {
+            const params = new URLSearchParams(searchParams)
+            params.delete('search')
+            setSearchParams(params)
+        }
+    }
+
+    // Clear search button
+    const handleClearSearch = () => {
+        setSearchValue('')
+        setSearchFocused(false)
+        if (urlSearchQuery) {
+            const params = new URLSearchParams(searchParams)
+            params.delete('search')
+            setSearchParams(params)
+        }
+    }
+
+    // Quick search preview matches (limit 5)
+    const searchSuggestions = searchValue.trim().length > 0
+        ? allMedia.filter((item) => {
+              const q = searchValue.toLowerCase().trim()
+              return (
+                  item.title?.toLowerCase().includes(q) ||
+                  item.genres?.some((g) => g.toLowerCase().includes(q)) ||
+                  item.director?.toLowerCase().includes(q) ||
+                  item.cast?.some((c) => c.toLowerCase().includes(q))
+              )
+          }).slice(0, 5)
+        : []
 
     const currentScopeLabel =
         location.pathname === '/movies'
@@ -244,20 +336,98 @@ const Navbar = () => {
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-3">
-                    {/* Search Bar */}
-                    <div className="relative hidden sm:block">
-                        <FiSearch
-                            className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors ${
-                                searchFocused ? 'text-primary' : 'text-base-content/40'
-                            }`}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Search movies & series..."
-                            onFocus={() => setSearchFocused(true)}
-                            onBlur={() => setSearchFocused(false)}
-                            className="h-9 w-48 rounded-full border border-base-300/80 bg-base-200/50 pl-9 pr-4 text-xs font-medium text-base-content placeholder-base-content/40 transition-all duration-300 focus:w-64 focus:border-primary/60 focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        />
+                    {/* Desktop Interactive Search Bar */}
+                    <div className="relative hidden sm:block" ref={searchRef}>
+                        <form onSubmit={handleSearchSubmit} className="relative">
+                            <FiSearch
+                                className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors ${
+                                    searchFocused ? 'text-primary' : 'text-base-content/40'
+                                }`}
+                            />
+                            <input
+                                type="text"
+                                value={searchValue}
+                                onChange={handleSearchChange}
+                                placeholder="Search movies & series..."
+                                onFocus={() => setSearchFocused(true)}
+                                className="h-9 w-48 rounded-full border border-base-300/80 bg-base-200/50 pl-9 pr-8 text-xs font-medium text-base-content placeholder-base-content/40 transition-all duration-300 focus:w-72 focus:border-primary/60 focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                            {searchValue && (
+                                <button
+                                    type="button"
+                                    onClick={handleClearSearch}
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content"
+                                    aria-label="Clear search"
+                                >
+                                    <FiX className="h-3.5 w-3.5" />
+                                </button>
+                            )}
+                        </form>
+
+                        {/* Live Search Quick Results Dropdown */}
+                        <AnimatePresence>
+                            {searchFocused && searchValue.trim().length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-base-300/80 bg-base-100/98 p-2.5 shadow-2xl backdrop-blur-2xl z-50 space-y-1.5"
+                                >
+                                    <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-base-content/50 border-b border-base-300/40 flex items-center justify-between">
+                                        <span>Quick Results</span>
+                                        <span>{searchSuggestions.length} found</span>
+                                    </div>
+
+                                    {searchSuggestions.length === 0 ? (
+                                        <div className="px-3 py-4 text-center text-xs text-base-content/60">
+                                            No titles found for &ldquo;{searchValue}&rdquo;
+                                        </div>
+                                    ) : (
+                                        searchSuggestions.map((item) => (
+                                            <Link
+                                                key={item.id}
+                                                to={`/details/${item.id}`}
+                                                onClick={() => setSearchFocused(false)}
+                                                className="flex items-center gap-2.5 rounded-xl p-2 hover:bg-base-200/90 transition-all group"
+                                            >
+                                                <img
+                                                    src={item.poster}
+                                                    alt={item.title}
+                                                    className="h-11 w-8 rounded-lg object-cover bg-base-300 shrink-0"
+                                                />
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate text-xs font-bold text-base-content group-hover:text-primary transition-colors">
+                                                        {item.title}
+                                                    </p>
+                                                    <div className="flex items-center gap-2 text-[10px] text-base-content/60 pt-0.5">
+                                                        <span className="font-semibold">{item.year}</span>
+                                                        <span>•</span>
+                                                        <span className="rounded bg-primary/10 px-1 py-0.2 text-primary font-bold">
+                                                            {item.type || 'Movie'}
+                                                        </span>
+                                                        {item.rating && (
+                                                            <span className="flex items-center gap-0.5 text-amber-500 font-bold">
+                                                                <FiStar className="h-2.5 w-2.5 fill-current" />
+                                                                {item.rating}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        onClick={handleSearchSubmit}
+                                        className="w-full text-center py-2 text-xs font-bold text-primary hover:bg-primary/10 rounded-xl transition-colors border-t border-base-300/40"
+                                    >
+                                        View all results for &ldquo;{searchValue}&rdquo; &rarr;
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     {/* Bookmark Counter Icon */}
@@ -297,7 +467,55 @@ const Navbar = () => {
                         transition={{ duration: 0.25 }}
                         className="overflow-hidden border-t border-base-300/60 bg-base-100/95 backdrop-blur-xl md:hidden"
                     >
-                        <div className="space-y-1 px-4 py-4 max-h-[80vh] overflow-y-auto">
+                        <div className="space-y-2 px-4 py-4 max-h-[80vh] overflow-y-auto">
+                            {/* Mobile Search */}
+                            <div className="relative w-full" ref={mobileSearchRef}>
+                                <form onSubmit={handleSearchSubmit} className="relative">
+                                    <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40" />
+                                    <input
+                                        type="text"
+                                        value={searchValue}
+                                        onChange={handleSearchChange}
+                                        placeholder="Search movies & series..."
+                                        className="h-10 w-full rounded-xl border border-base-300 bg-base-200/50 pl-9 pr-9 text-xs font-medium focus:border-primary focus:outline-none"
+                                    />
+                                    {searchValue && (
+                                        <button
+                                            type="button"
+                                            onClick={handleClearSearch}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content"
+                                            aria-label="Clear mobile search"
+                                        >
+                                            <FiX className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </form>
+
+                                {/* Mobile Search Quick Suggestions */}
+                                {searchValue.trim().length > 0 && (
+                                    <div className="mt-2 rounded-xl border border-base-300/60 bg-base-200/50 p-2 space-y-1">
+                                        {searchSuggestions.slice(0, 3).map((item) => (
+                                            <Link
+                                                key={item.id}
+                                                to={`/details/${item.id}`}
+                                                onClick={() => setMobileMenuOpen(false)}
+                                                className="flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-base-100"
+                                            >
+                                                <img
+                                                    src={item.poster}
+                                                    alt={item.title}
+                                                    className="h-9 w-7 rounded object-cover"
+                                                />
+                                                <div className="min-w-0 flex-1 text-xs">
+                                                    <p className="font-bold truncate text-base-content">{item.title}</p>
+                                                    <p className="text-[10px] text-base-content/50">{item.type} • {item.year}</p>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
                             {navLinks.map(({ path, label, icon: Icon, color }) => (
                                 <NavLink
                                     key={path}
@@ -380,18 +598,6 @@ const Navbar = () => {
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </div>
-
-                            {/* Mobile Search */}
-                            <div className="pt-2">
-                                <div className="relative w-full">
-                                    <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search movies & series..."
-                                        className="h-10 w-full rounded-xl border border-base-300 bg-base-200/50 pl-9 pr-4 text-xs font-medium focus:border-primary focus:outline-none"
-                                    />
-                                </div>
                             </div>
                         </div>
                     </motion.div>
