@@ -8,9 +8,11 @@ import GenreIcon from '../components/ui/GenreIcon'
 import SectionHeader from '../components/ui/SectionHeader'
 import LoadingGrid from '../components/ui/LoadingGrid'
 import PopularSeriesContent from '../components/features/popular-series/PopularSeriesContent'
+import PopularAnimationContent from '../components/features/popular-animation/PopularAnimationContent'
 
 const popularMoviesPromise = fetch("/popularMovies.json").then((res) => res.json());
 const popularSeriesPromise = fetch("/popularSeries.json").then((res) => res.json());
+const popularAnimationPromise = fetch("/popularAnimation.json").then((res) => res.json());
 const trendingContentPromise = fetch("/trendingContent.json").then((res) => res.json());
 
 const MainLayout = () => {
@@ -46,7 +48,7 @@ const MainLayout = () => {
                                     )}
                                 </h3>
                                 <p className="text-xs text-base-content/65">
-                                    Showing movies, series, and trending content matching your criteria.
+                                    Showing movies, series, animation, and trending content matching your criteria.
                                 </p>
                             </div>
                         </div>
@@ -92,6 +94,22 @@ const MainLayout = () => {
                 }
             >
                 <PopularSeriesContent popularSeriesPromise={popularSeriesPromise} />
+            </Suspense>
+
+            <Suspense
+                fallback={
+                    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-6">
+                        <SectionHeader
+                            title="Popular Animation"
+                            description="Discover iconic anime, animated adventures, and visually stunning storytelling."
+                            badge="Animation"
+                            viewAllLink="/animation"
+                        />
+                        <LoadingGrid count={6} />
+                    </div>
+                }
+            >
+                <PopularAnimationContent popularAnimationPromise={popularAnimationPromise} />
             </Suspense>
 
             <Suspense

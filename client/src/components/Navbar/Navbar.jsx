@@ -12,6 +12,7 @@ import {
     FiChevronDown,
     FiCheck,
     FiStar,
+    FiSmile,
 } from 'react-icons/fi'
 import { NavLink, Link, useLocation, useSearchParams, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -50,9 +51,10 @@ const Navbar = () => {
         Promise.all([
             fetch('/popularMovies.json').then((r) => r.json()),
             fetch('/popularSeries.json').then((r) => r.json()),
+            fetch('/popularAnimation.json').then((r) => r.json()),
         ])
-            .then(([movies, series]) => {
-                setAllMedia([...movies, ...series])
+            .then(([movies, series, animations]) => {
+                setAllMedia([...movies, ...series, ...animations])
             })
             .catch(() => setAllMedia([]))
     }, [])
@@ -95,12 +97,13 @@ const Navbar = () => {
         { path: '/', label: 'Home', icon: FiHome, color: 'text-primary' },
         { path: '/movies', label: 'Movies', icon: FiFilm, color: 'text-primary' },
         { path: '/series', label: 'Series', icon: FiTv, color: 'text-secondary' },
+        { path: '/animation', label: 'Animation', icon: FiSmile, color: 'text-warning' },
         { path: '/trending', label: 'Trending', icon: FiTrendingUp, color: 'text-accent' },
     ]
 
     // Determine current target base path for genre filtering
     const getGenrePath = (genreName) => {
-        const basePath = ['/movies', '/series', '/trending'].includes(location.pathname)
+        const basePath = ['/movies', '/series', '/animation', '/trending'].includes(location.pathname)
             ? location.pathname
             : '/'
         const params = new URLSearchParams(searchParams)
@@ -116,7 +119,7 @@ const Navbar = () => {
         setMobileMenuOpen(false)
 
         const currentPath = location.pathname
-        const targetPath = ['/movies', '/series', '/trending', '/'].includes(currentPath)
+        const targetPath = ['/movies', '/series', '/animation', '/trending', '/'].includes(currentPath)
             ? currentPath
             : '/movies'
 

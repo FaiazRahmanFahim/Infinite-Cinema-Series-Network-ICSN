@@ -5,6 +5,7 @@ import PopularMoviesContent from '../components/features/popular-movies/PopularM
 import TrendingContent from '../components/features/trending-content/TrendingContent'
 import DetailsPage from '../components/features/detailsPage/detailsPage'
 import PopularSeriesContent from '../components/features/popular-series/PopularSeriesContent'
+import PopularAnimationContent from '../components/features/popular-animation/PopularAnimationContent'
 
 export const router = createBrowserRouter([
     {
@@ -26,6 +27,11 @@ export const router = createBrowserRouter([
                 Component: PopularSeriesContent,
             },
             {
+                path: '/animation',
+                loader: () => fetch('/popularAnimation.json').then((res) => res.json()),
+                Component: PopularAnimationContent,
+            },
+            {
                 path: '/trending',
                 loader: () => fetch('/trendingContent.json').then((res) => res.json()),
                 Component: TrendingContent,
@@ -40,6 +46,10 @@ export const router = createBrowserRouter([
             },
             {
                 path: '/series/:id',
+                Component: DetailsPage,
+            },
+            {
+                path: '/animation/:id',
                 Component: DetailsPage,
             },
         ]

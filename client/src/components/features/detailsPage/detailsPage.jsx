@@ -37,14 +37,15 @@ const DetailsPage = () => {
 
         async function fetchDetails() {
             try {
-                const [moviesRes, seriesRes] = await Promise.all([
+                const [moviesRes, seriesRes, animRes] = await Promise.all([
                     fetch('/popularMovies.json').then((r) => r.json()),
                     fetch('/popularSeries.json').then((r) => r.json()),
+                    fetch('/popularAnimation.json').then((r) => r.json()),
                 ])
 
                 if (!isMounted) return
 
-                const combined = [...moviesRes, ...seriesRes]
+                const combined = [...moviesRes, ...seriesRes, ...animRes]
                 setAllMedia(combined)
 
                 // Match item by id or normalized title slug
