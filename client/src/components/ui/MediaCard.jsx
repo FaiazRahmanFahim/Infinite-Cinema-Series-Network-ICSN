@@ -1,17 +1,22 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router'
-import { FiPlay, FiStar, FiBookmark, FiCheck } from 'react-icons/fi'
+import { FiPlay, FiStar, FiBookmark, FiCheck, FiAward } from 'react-icons/fi'
 
 const MediaCard = ({ item }) => {
     const [isBookmarked, setIsBookmarked] = useState(false)
     const detailsUrl = `/details/${item.id || item._id}`
+    const isPremium = item.isPremium || Boolean(item.premiumTier)
 
     return (
         <motion.article
             whileHover={{ y: -6, scale: 1.02 }}
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className="group relative flex flex-col overflow-hidden rounded-2xl border border-base-300/70 bg-base-200/60 backdrop-blur-sm shadow-xs transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10"
+            className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-base-200/60 backdrop-blur-sm shadow-xs transition-all duration-300 ${
+                isPremium
+                    ? 'border-amber-500/40 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/15'
+                    : 'border-base-300/70 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10'
+            }`}
         >
             <Link to={detailsUrl} className="block relative aspect-[2/3] w-full overflow-hidden bg-base-300" aria-label={`View details for ${item.title}`}>
                 <img
@@ -30,9 +35,21 @@ const MediaCard = ({ item }) => {
 
                 {/* Top Badges */}
                 <div className="absolute left-3 top-3 right-3 flex items-center justify-between pointer-events-none">
-                    <span className="rounded-md bg-primary/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-content shadow-xs backdrop-blur-md">
-                        {item.type || 'Media'}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md border border-white/10 shadow-xs">
+                            {item.type || 'Media'}
+                        </span>
+
+                        {isPremium && (
+                            <span
+                                className="grid h-6 w-6 place-items-center rounded-md bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-black shadow-md shadow-amber-500/25"
+                                title="Premium Title"
+                                aria-label="Premium Selection"
+                            >
+                                <FiAward className="h-3.5 w-3.5 stroke-[2.5]" />
+                            </span>
+                        )}
+                    </div>
 
                     <motion.button
                         whileHover={{ scale: 1.15 }}
@@ -57,11 +74,24 @@ const MediaCard = ({ item }) => {
 
                 {/* Bottom Overlay Info */}
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-semibold">
-                    <span className="rounded bg-black/50 px-1.5 py-0.5 text-[11px] backdrop-blur-xs">
-                        {item.year}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="rounded bg-black/50 px-1.5 py-0.5 text-[11px] backdrop-blur-xs font-semibold">
+                            {item.year}
+                        </span>
+                        {item.country && (
+                            <span className="hidden sm:inline-flex items-center gap-0.5 rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-white/80 backdrop-blur-xs">
+                                {item.country.includes('United States')
+                                    ? 'USA'
+                                    : item.country.includes('United Kingdom')
+                                    ? 'UK'
+                                    : item.country.includes('South Korea')
+                                    ? 'Korea'
+                                    : item.country}
+                            </span>
+                        )}
+                    </div>
 
-                    <span className="flex items-center gap-1 rounded bg-amber-500/20 px-2 py-0.5 text-amber-300 border border-amber-500/30 backdrop-blur-xs font-bold text-[11px]">
+                    <span className="flex items-center gap-1 rounded-md bg-black/75 px-2 py-0.5 text-amber-400 border border-amber-400/40 backdrop-blur-md font-bold text-[11px] shadow-sm">
                         <FiStar className="h-3 w-3 fill-amber-400 text-amber-400" />
                         {item.rating ? Number(item.rating).toFixed(1) : 'N/A'}
                     </span>
@@ -69,7 +99,11 @@ const MediaCard = ({ item }) => {
 
                 {/* Hover Play Button */}
                 <div
-                    className="absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-primary text-primary-content opacity-0 shadow-lg shadow-primary/40 transition duration-300 group-hover:opacity-100"
+                    className={`absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full opacity-0 shadow-lg transition duration-300 group-hover:opacity-100 ${
+                        isPremium
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-amber-500/40'
+                            : 'bg-primary text-primary-content shadow-primary/40'
+                    }`}
                     aria-hidden="true"
                 >
                     <FiPlay className="ml-0.5 h-5 w-5 fill-current" />
@@ -97,7 +131,7 @@ const MediaCard = ({ item }) => {
                         {item.genres.slice(0, 2).map((genre) => (
                             <Link
                                 key={genre}
-                                to={`/movies?genre=${encodeURIComponent(genre)}`}
+                                to={`/browse?genre=${encodeURIComponent(genre)}`}
                                 className="rounded-md bg-base-300/80 px-2 py-0.5 text-[10px] font-medium text-base-content/75 hover:bg-primary/15 hover:text-primary transition-colors"
                             >
                                 {genre}

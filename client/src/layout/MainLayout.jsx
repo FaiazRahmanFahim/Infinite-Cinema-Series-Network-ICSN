@@ -1,9 +1,10 @@
 import { Suspense } from 'react'
 import { useSearchParams, Link } from 'react-router'
-import { FiFilter, FiX, FiSearch } from 'react-icons/fi'
+import { FiFilter, FiX, FiSearch, FiAward } from 'react-icons/fi'
 import Banner from '../components/Banner/Banner'
 import PopularMoviesContent from '../components/features/popular-movies/PopularMoviesContent'
 import TrendingContent from '../components/features/trending-content/TrendingContent'
+import PremiumContent from '../components/features/premium/PremiumContent'
 import GenreIcon from '../components/ui/GenreIcon'
 import SectionHeader from '../components/ui/SectionHeader'
 import LoadingGrid from '../components/ui/LoadingGrid'
@@ -15,11 +16,30 @@ const popularSeriesPromise = fetch("/popularSeries.json").then((res) => res.json
 const popularAnimationPromise = fetch("/popularAnimation.json").then((res) => res.json());
 const trendingContentPromise = fetch("/trendingContent.json").then((res) => res.json());
 
+// Derive premium items from existing datasets using the special identifier (isPremium)
+const premiumContentPromise = Promise.all([
+    popularMoviesPromise,
+    popularSeriesPromise,
+    popularAnimationPromise,
+    trendingContentPromise,
+]).then(([movies, series, animation, trending]) => {
+    const map = new Map();
+    for (const item of [...movies, ...series, ...animation, ...trending]) {
+        if (item.isPremium && !map.has(item.id)) {
+            map.set(item.id, item);
+        }
+    }
+    return Array.from(map.values());
+});
+
 const MainLayout = () => {
     const [searchParams] = useSearchParams()
     const activeGenre = searchParams.get('genre')
     const activeSearch = searchParams.get('search')?.trim()
-    const hasActiveFilters = Boolean(activeGenre || activeSearch)
+    const activeCountry = searchParams.get('country')
+    const activeLang = searchParams.get('language')
+    const activeYear = searchParams.get('year')
+    const hasActiveFilters = Boolean(activeGenre || activeSearch || activeCountry || activeLang || activeYear)
 
     return (
         <div className="flex min-h-screen flex-col bg-base-100 text-base-content transition-colors duration-300">
@@ -43,26 +63,55 @@ const MainLayout = () => {
                                         <>Searching for <span className="text-primary">&ldquo;{activeSearch}&rdquo;</span> in <span className="text-secondary">{activeGenre}</span></>
                                     ) : activeSearch ? (
                                         <>Searching for <span className="text-primary">&ldquo;{activeSearch}&rdquo;</span></>
+                                    ) : activeGenre ? (
+                                        <>Filtering by genre <span className="text-primary">{activeGenre}</span></>
                                     ) : (
-                                        <>Filtering by <span className="text-primary">{activeGenre}</span></>
+                                        <>Active custom filters</>
                                     )}
                                 </h3>
                                 <p className="text-xs text-base-content/65">
-                                    Showing movies, series, animation, and trending content matching your criteria.
+                                    Showing preview of titles matching your criteria across categories.
                                 </p>
                             </div>
                         </div>
 
-                        <Link
-                            to="/"
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-base-300 bg-base-100 px-3.5 py-2 text-xs font-bold text-base-content hover:bg-base-200 transition-colors shadow-xs"
-                        >
-                            <FiX className="h-3.5 w-3.5" />
-                            <span>Clear Filter</span>
-                        </Link>
+                        <div className="flex items-center gap-2 self-end sm:self-center">
+                            <Link
+                                to={`/browse?${searchParams.toString()}`}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-primary-content hover:bg-primary/90 transition-colors shadow-sm"
+                            >
+                                <span>Explore in Full Catalog &rarr;</span>
+                            </Link>
+
+                            <Link
+                                to="/"
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-base-300 bg-base-100 px-3 py-2 text-xs font-bold text-base-content hover:bg-base-200 transition-colors shadow-xs"
+                            >
+                                <FiX className="h-3.5 w-3.5" />
+                                <span>Clear</span>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             )}
+
+            {/* Premium Content Section on Home */}
+            <Suspense
+                fallback={
+                    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-6">
+                        <SectionHeader
+                            title="Premium Content"
+                            description="Explore master-grade releases in 4K Ultra HD, Dolby Vision, and IMAX format."
+                            badge="Premium"
+                            viewAllLink="/premium"
+                            viewAllText="View All Premium"
+                        />
+                        <LoadingGrid count={6} />
+                    </div>
+                }
+            >
+                <PremiumContent premiumPromise={premiumContentPromise} maxCount={6} />
+            </Suspense>
 
             <Suspense
                 fallback={

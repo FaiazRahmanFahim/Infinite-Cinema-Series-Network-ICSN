@@ -14,6 +14,9 @@ import {
     FiUser,
     FiX,
     FiTv,
+    FiGlobe,
+    FiAward,
+    FiZap,
 } from 'react-icons/fi'
 import SectionHeader from '../../ui/SectionHeader'
 import MediaCard from '../../ui/MediaCard'
@@ -37,15 +40,16 @@ const DetailsPage = () => {
 
         async function fetchDetails() {
             try {
-                const [moviesRes, seriesRes, animRes] = await Promise.all([
+                const [moviesRes, seriesRes, animRes, trendRes] = await Promise.all([
                     fetch('/popularMovies.json').then((r) => r.json()),
                     fetch('/popularSeries.json').then((r) => r.json()),
                     fetch('/popularAnimation.json').then((r) => r.json()),
+                    fetch('/trendingContent.json').then((r) => r.json()).catch(() => []),
                 ])
 
                 if (!isMounted) return
 
-                const combined = [...moviesRes, ...seriesRes, ...animRes]
+                const combined = [...moviesRes, ...seriesRes, ...animRes, ...trendRes]
                 setAllMedia(combined)
 
                 // Match item by id or normalized title slug
@@ -64,7 +68,7 @@ const DetailsPage = () => {
         }
 
         fetchDetails()
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
 
         return () => {
             isMounted = false
@@ -165,9 +169,46 @@ const DetailsPage = () => {
                         <div className="flex-1 space-y-4">
                             {/* Badges & Meta Info Row */}
                             <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-base-content/80">
-                                <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-extrabold text-primary-content shadow-sm">
+                                <span className={`rounded-md px-2.5 py-1 text-[11px] font-extrabold shadow-sm ${
+                                    item.isPremium
+                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black font-extrabold'
+                                        : 'bg-primary text-primary-content'
+                                }`}>
                                     {item.type || 'Media'}
                                 </span>
+
+                                {item.isPremium && (
+                                    <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/15 px-2.5 py-1 text-[11px] font-extrabold text-amber-400 backdrop-blur-md">
+                                        <FiAward className="h-3 w-3" />
+                                        {item.premiumTier || 'VIP Master'}
+                                    </span>
+                                )}
+
+                                {item.videoQuality && (
+                                    <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-base-200/80 px-2.5 py-1 text-[11px] text-amber-400 backdrop-blur-md font-semibold">
+                                        <FiZap className="h-3 w-3 text-amber-400" />
+                                        {item.videoQuality}
+                                    </span>
+                                )}
+
+                                {item.audio && (
+                                    <span className="rounded-md border border-purple-500/30 bg-base-200/80 px-2.5 py-1 text-[11px] text-purple-400 backdrop-blur-md font-semibold">
+                                        {item.audio}
+                                    </span>
+                                )}
+
+                                {item.country && (
+                                    <span className="inline-flex items-center gap-1 rounded-md border border-base-300/80 bg-base-200/80 px-2.5 py-1 text-[11px] backdrop-blur-md">
+                                        <FiGlobe className="h-3 w-3 text-secondary" />
+                                        {item.country}
+                                    </span>
+                                )}
+
+                                {item.language && (
+                                    <span className="rounded-md border border-base-300/80 bg-base-200/80 px-2.5 py-1 text-[11px] backdrop-blur-md text-base-content/80">
+                                        {item.language}
+                                    </span>
+                                )}
 
                                 {item.ageRating && (
                                     <span className="rounded-md border border-base-300/80 bg-base-200/80 px-2 py-0.5 text-[11px] backdrop-blur-md">
@@ -187,7 +228,7 @@ const DetailsPage = () => {
                                     </span>
                                 )}
 
-                                <span className="flex items-center gap-1 rounded-md bg-amber-500/20 border border-amber-500/30 px-2 py-0.5 text-amber-300 font-extrabold text-xs backdrop-blur-md">
+                                <span className="flex items-center gap-1 rounded-md bg-black/80 border border-amber-400/50 px-2.5 py-1 text-amber-400 font-extrabold text-xs backdrop-blur-md shadow-sm">
                                     <FiStar className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                                     {item.rating ? Number(item.rating).toFixed(1) : 'N/A'}
                                 </span>
@@ -346,10 +387,31 @@ const DetailsPage = () => {
                                     <span className="font-bold text-base-content">{item.type || 'Feature'}</span>
                                 </div>
 
+                                {item.country && (
+                                    <div className="flex justify-between py-1 border-b border-base-300/30">
+                                        <span className="font-medium text-base-content/60">Country</span>
+                                        <span className="font-bold text-base-content">{item.country}</span>
+                                    </div>
+                                )}
+
+                                {item.language && (
+                                    <div className="flex justify-between py-1 border-b border-base-300/30">
+                                        <span className="font-medium text-base-content/60">Language</span>
+                                        <span className="font-bold text-base-content">{item.language}</span>
+                                    </div>
+                                )}
+
                                 <div className="flex justify-between py-1 border-b border-base-300/30">
                                     <span className="font-medium text-base-content/60">Release Year</span>
                                     <span className="font-bold text-base-content">{item.year}</span>
                                 </div>
+
+                                {item.popularity && (
+                                    <div className="flex justify-between py-1 border-b border-base-300/30">
+                                        <span className="font-medium text-base-content/60">Popularity Score</span>
+                                        <span className="font-bold text-primary">{item.popularity} / 100</span>
+                                    </div>
+                                )}
 
                                 {item.runtime && (
                                     <div className="flex justify-between py-1 border-b border-base-300/30">

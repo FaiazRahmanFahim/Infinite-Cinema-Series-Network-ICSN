@@ -80,7 +80,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* Avoid global scroll-behavior: smooth which lags page route transitions */
 }
 
 body {
