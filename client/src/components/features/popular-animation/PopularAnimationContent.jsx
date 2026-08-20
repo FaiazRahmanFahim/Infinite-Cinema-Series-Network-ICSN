@@ -1,10 +1,17 @@
 import { use, useMemo } from 'react'
 import { useLoaderData, useSearchParams, useLocation } from 'react-router'
+import { motion } from 'framer-motion'
 import SectionHeader from '../../ui/SectionHeader'
 import MediaCard from '../../ui/MediaCard'
 import EmptyState from '../../ui/EmptyState'
 import SortBar from '../../ui/SortBar'
 import { filterAndSortMedia } from '../../../utils/filterMedia'
+import {
+    sectionVariants,
+    containerVariants,
+    itemVariants,
+    defaultViewport,
+} from '../../../animations/motionVariants'
 
 const PopularAnimationContent = ({ popularAnimationPromise, popularAnimation, maxCount }) => {
     const loaderData = useLoaderData()
@@ -73,7 +80,13 @@ const PopularAnimationContent = ({ popularAnimationPromise, popularAnimation, ma
         : null
 
     return (
-        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-6">
+        <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-6"
+        >
             <SectionHeader
                 title="Popular Animation"
                 description={
@@ -88,16 +101,22 @@ const PopularAnimationContent = ({ popularAnimationPromise, popularAnimation, ma
 
             {/* Individual search and sort on dedicated animation page */}
             {!isHomePage && (
-                <SortBar
-                    searchQuery={searchQuery}
-                    onSearchChange={handleSearchChange}
-                    currentSort={currentSort}
-                    onSortChange={handleSortChange}
-                    totalCount={sortedAnimation.length}
-                    activeGenre={activeGenre}
-                    onClearGenre={handleClearGenre}
-                    placeholder="Search animation by title, cast, director..."
-                />
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35 }}
+                >
+                    <SortBar
+                        searchQuery={searchQuery}
+                        onSearchChange={handleSearchChange}
+                        currentSort={currentSort}
+                        onSortChange={handleSortChange}
+                        totalCount={sortedAnimation.length}
+                        activeGenre={activeGenre}
+                        onClearGenre={handleClearGenre}
+                        placeholder="Search animation by title, cast, director..."
+                    />
+                </motion.div>
             )}
 
             {!displayAnimation || displayAnimation.length === 0 ? (
@@ -109,13 +128,20 @@ const PopularAnimationContent = ({ popularAnimationPromise, popularAnimation, ma
                     }
                 />
             ) : (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"
+                >
                     {displayAnimation.map((anim) => (
-                        <MediaCard key={anim.id || anim._id} item={anim} />
+                        <motion.div key={anim.id || anim._id} variants={itemVariants}>
+                            <MediaCard item={anim} />
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             )}
-        </section>
+        </motion.section>
     )
 }
 

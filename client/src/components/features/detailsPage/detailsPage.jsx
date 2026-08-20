@@ -1,28 +1,34 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router'
+import { useParams, useNavigate, Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-    FiArrowLeft,
     FiPlay,
     FiStar,
+    FiClock,
+    FiCalendar,
+    FiArrowLeft,
     FiBookmark,
     FiCheck,
     FiShare2,
-    FiClock,
-    FiCalendar,
-    FiFilm,
-    FiUser,
     FiX,
-    FiTv,
-    FiGlobe,
+    FiFilm,
     FiAward,
     FiZap,
+    FiGlobe,
+    FiUser,
 } from 'react-icons/fi'
 import SectionHeader from '../../ui/SectionHeader'
 import MediaCard from '../../ui/MediaCard'
-import LoadingGrid from '../../ui/LoadingGrid'
-import EmptyState from '../../ui/EmptyState'
 import GenreIcon from '../../ui/GenreIcon'
+import {
+    pageVariants,
+    sectionVariants,
+    containerVariants,
+    itemVariants,
+    modalVariants,
+    scaleInVariants,
+    defaultViewport,
+} from '../../../animations/motionVariants'
 
 const DetailsPage = () => {
     const { id } = useParams()
@@ -61,70 +67,113 @@ const DetailsPage = () => {
                 )
 
                 setItem(found || null)
-                setLoading(false)
-            } catch {
+            } catch (err) {
+                console.error('Failed to load item details:', err)
+            } finally {
                 if (isMounted) setLoading(false)
             }
         }
 
         fetchDetails()
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
 
         return () => {
             isMounted = false
         }
     }, [id])
 
-    const handleShare = () => {
-        if (navigator.clipboard) {
+    // Scroll to top on new detail page load
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, [id])
+
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: item?.title || 'ICSN Media',
+                    text: item?.description || '',
+                    url: window.location.href,
+                })
+            } catch {
+                // Ignore cancel
+            }
+        } else {
             navigator.clipboard.writeText(window.location.href)
             setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
+            setTimeout(() => setCopied(false), 2500)
         }
     }
 
+    // Filter related media by shared genres or type
+    const relatedMedia = allMedia
+        .filter((m) => {
+            if (!item) return false
+            if (m.id === item.id) return false
+            const hasSharedGenre = m.genres?.some((g) => item.genres?.includes(g))
+            const isSameType = m.type === item.type
+            return hasSharedGenre || isSameType
+        })
+        .slice(0, 6)
+
     if (loading) {
         return (
-            <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-8">
-                <div className="h-96 w-full animate-pulse rounded-3xl bg-base-300" />
-                <LoadingGrid count={6} />
+            <div className="flex min-h-[70vh] items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <span className="loading loading-spinner loading-lg text-primary" />
+                    <p className="text-sm font-semibold text-base-content/70">
+                        Loading cinematic experience...
+                    </p>
+                </div>
             </div>
         )
     }
 
     if (!item) {
         return (
-            <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 lg:px-8 space-y-6">
-                <EmptyState message="The requested movie or series could not be found." />
-                <button
-                    type="button"
-                    onClick={() => navigate(-1)}
-                    className="btn btn-primary btn-sm gap-2"
-                >
-                    <FiArrowLeft className="h-4 w-4" />
-                    <span>Go Back</span>
-                </button>
+            <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center px-4 text-center">
+                <div className="grid h-16 w-16 place-items-center rounded-2xl bg-base-300 text-base-content/40 mb-4">
+                    <FiFilm className="h-8 w-8" />
+                </div>
+                <h2 className="font-display text-2xl font-bold text-base-content">
+                    Title Not Found
+                </h2>
+                <p className="mt-2 text-sm text-base-content/70">
+                    The media you are looking for might have been moved or does not exist in the current catalog.
+                </p>
+                <div className="mt-6 flex gap-3">
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="btn btn-outline btn-sm gap-2"
+                    >
+                        <FiArrowLeft className="h-4 w-4" />
+                        <span>Go Back</span>
+                    </button>
+                    <Link to="/" className="btn btn-primary btn-sm">
+                        Back to Home
+                    </Link>
+                </div>
             </div>
         )
     }
 
-    // Find related media sharing at least 1 genre
-    const relatedMedia = allMedia
-        .filter(
-            (m) =>
-                (m.id !== item.id) &&
-                m.genres?.some((g) => item.genres?.includes(g))
-        )
-        .slice(0, 6)
-
     return (
-        <div className="min-h-screen bg-base-100 pb-20 text-base-content">
+        <motion.div
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="min-h-screen bg-base-100 pb-20 text-base-content"
+        >
             {/* Hero Backdrop Banner */}
             <div className="relative min-h-[520px] w-full overflow-hidden bg-black lg:min-h-[580px]">
-                <img
+                <motion.img
+                    initial={{ scale: 1.1, opacity: 0 }}
+                    animate={{ scale: 1.05, opacity: 0.35 }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
                     src={item.backdrop || item.poster}
                     alt={`${item.title} backdrop`}
-                    className="h-full w-full object-cover opacity-35 filter blur-[1px] transform scale-105 transition-all duration-700"
+                    className="h-full w-full object-cover filter blur-[1px]"
                 />
 
                 {/* Dark Gradient Overlays for Cinematic Atmosphere */}
@@ -136,7 +185,7 @@ const DetailsPage = () => {
                     <button
                         type="button"
                         onClick={() => navigate(-1)}
-                        className="group inline-flex items-center gap-2 rounded-full border border-base-300/60 bg-base-100/80 px-4 py-2 text-xs font-bold text-base-content backdrop-blur-xl transition hover:bg-primary hover:text-primary-content hover:border-primary"
+                        className="group inline-flex items-center gap-2 rounded-full border border-base-300/60 bg-base-100/80 px-4 py-2 text-xs font-bold text-base-content backdrop-blur-xl transition hover:bg-primary hover:text-primary-content hover:border-primary shadow-sm"
                     >
                         <FiArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                         <span>Back</span>
@@ -148,9 +197,9 @@ const DetailsPage = () => {
                     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 sm:px-6 lg:flex-row lg:items-end lg:px-8">
                         {/* Poster Card */}
                         <motion.div
-                            initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ duration: 0.5 }}
+                            variants={scaleInVariants}
+                            initial="hidden"
+                            animate="visible"
                             className="relative hidden aspect-[2/3] w-56 shrink-0 overflow-hidden rounded-2xl border-2 border-base-300/80 bg-base-300 shadow-2xl lg:block"
                         >
                             <img
@@ -166,21 +215,22 @@ const DetailsPage = () => {
                         </motion.div>
 
                         {/* Title & Metadata Details */}
-                        <div className="flex-1 space-y-4">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.15 }}
+                            className="flex-1 space-y-4"
+                        >
                             {/* Badges & Meta Info Row */}
                             <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-base-content/80">
-                                <span className={`rounded-md px-2.5 py-1 text-[11px] font-extrabold shadow-sm ${
-                                    item.isPremium
-                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black font-extrabold'
-                                        : 'bg-primary text-primary-content'
-                                }`}>
+                                <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-extrabold text-primary-content shadow-sm">
                                     {item.type || 'Media'}
                                 </span>
 
                                 {item.isPremium && (
-                                    <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/15 px-2.5 py-1 text-[11px] font-extrabold text-amber-400 backdrop-blur-md">
-                                        <FiAward className="h-3 w-3" />
-                                        {item.premiumTier || 'VIP Master'}
+                                    <span className="inline-flex items-center gap-1.5 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-2.5 py-1 text-[11px] font-extrabold text-black shadow-sm">
+                                        <FiAward className="h-3.5 w-3.5" />
+                                        {item.premiumTier || 'VIP Selection'}
                                     </span>
                                 )}
 
@@ -246,13 +296,13 @@ const DetailsPage = () => {
                                 </p>
                             )}
 
-                            {/* Genre Badges */}
+                            {/* Genres Row */}
                             {item.genres && item.genres.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5 pt-1">
                                     {item.genres.map((genre) => (
                                         <Link
                                             key={genre}
-                                            to={`/movies?genre=${encodeURIComponent(genre)}`}
+                                            to={`/browse?genre=${encodeURIComponent(genre)}`}
                                             className="inline-flex items-center gap-1.5 rounded-lg border border-base-300/80 bg-base-200/70 px-3 py-1 text-xs font-semibold text-base-content/85 backdrop-blur-md hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all"
                                         >
                                             <GenreIcon name={genre} className="h-3 w-3" />
@@ -316,14 +366,20 @@ const DetailsPage = () => {
                                     </span>
                                 )}
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>
 
             {/* Overview & Metadata Content Section */}
             <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-12">
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                <motion.div
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={defaultViewport}
+                    className="grid grid-cols-1 gap-8 lg:grid-cols-3"
+                >
                     {/* Storyline & Overview */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="rounded-3xl border border-base-300/70 bg-base-200/40 p-6 sm:p-8 backdrop-blur-sm shadow-xs space-y-4">
@@ -338,7 +394,13 @@ const DetailsPage = () => {
 
                         {/* Cast Members */}
                         {item.cast && item.cast.length > 0 && (
-                            <div className="rounded-3xl border border-base-300/70 bg-base-200/40 p-6 sm:p-8 backdrop-blur-sm shadow-xs space-y-4">
+                            <motion.div
+                                initial={{ opacity: 0, y: 15 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.45 }}
+                                className="rounded-3xl border border-base-300/70 bg-base-200/40 p-6 sm:p-8 backdrop-blur-sm shadow-xs space-y-4"
+                            >
                                 <h3 className="font-display text-lg font-bold tracking-tight text-base-content flex items-center gap-2">
                                     <FiUser className="h-5 w-5 text-secondary" />
                                     <span>Top Cast</span>
@@ -356,7 +418,7 @@ const DetailsPage = () => {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
                     </div>
 
@@ -434,11 +496,17 @@ const DetailsPage = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Related / Recommended Titles Section */}
                 {relatedMedia.length > 0 && (
-                    <div className="space-y-6 pt-6">
+                    <motion.div
+                        variants={sectionVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={defaultViewport}
+                        className="space-y-6 pt-6"
+                    >
                         <SectionHeader
                             title="Related & Recommended"
                             description={`More ${item.genres?.[0] || 'popular'} titles you might enjoy.`}
@@ -447,12 +515,20 @@ const DetailsPage = () => {
                             viewAllText={`Explore All ${item.type === 'Series' ? 'Series' : 'Movies'}`}
                         />
 
-                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                        <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={defaultViewport}
+                            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6"
+                        >
                             {relatedMedia.map((relItem) => (
-                                <MediaCard key={relItem.id || relItem._id} item={relItem} />
+                                <motion.div key={relItem.id || relItem._id} variants={itemVariants}>
+                                    <MediaCard item={relItem} />
+                                </motion.div>
                             ))}
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
                 )}
             </div>
 
@@ -467,9 +543,10 @@ const DetailsPage = () => {
                         onClick={() => setTrailerModalOpen(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
+                            variants={modalVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
                             onClick={(e) => e.stopPropagation()}
                             className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl"
                         >
@@ -508,7 +585,7 @@ const DetailsPage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </motion.div>
     )
 }
 

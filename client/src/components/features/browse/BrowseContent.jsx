@@ -1,11 +1,17 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useLoaderData, useSearchParams } from 'react-router'
+import { motion } from 'framer-motion'
 import { FiRotateCcw } from 'react-icons/fi'
 import SectionHeader from '../../ui/SectionHeader'
 import MediaCard from '../../ui/MediaCard'
 import EmptyState from '../../ui/EmptyState'
 import MediaFilterBar from '../../ui/MediaFilterBar'
 import { filterAndSortMedia } from '../../../utils/filterMedia'
+import {
+    pageVariants,
+    containerVariants,
+    itemVariants,
+} from '../../../animations/motionVariants'
 
 const BrowseContent = () => {
     const loaderData = useLoaderData()
@@ -90,7 +96,13 @@ const BrowseContent = () => {
     }
 
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+        <motion.div
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6"
+        >
             <SectionHeader
                 title="Browse & Filter Catalog"
                 description="Filter across all movies, series, and animation by type, country, language, release year, genres, and sort by latest or IMDb rating."
@@ -98,13 +110,19 @@ const BrowseContent = () => {
             />
 
             {/* Comprehensive Multi-Criteria Filter Bar */}
-            <MediaFilterBar
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onResetFilters={handleResetFilters}
-                totalCount={filteredItems.length}
-                showTypeFilter={true}
-            />
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.05 }}
+            >
+                <MediaFilterBar
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onResetFilters={handleResetFilters}
+                    totalCount={filteredItems.length}
+                    showTypeFilter={true}
+                />
+            </motion.div>
 
             {/* Results Grid */}
             {filteredItems.length === 0 ? (
@@ -122,13 +140,21 @@ const BrowseContent = () => {
                     </button>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                <motion.div
+                    key={JSON.stringify(filters)}
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"
+                >
                     {filteredItems.map((item) => (
-                        <MediaCard key={item.id || item._id} item={item} />
+                        <motion.div key={item.id || item._id} variants={itemVariants}>
+                            <MediaCard item={item} />
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             )}
-        </div>
+        </motion.div>
     )
 }
 

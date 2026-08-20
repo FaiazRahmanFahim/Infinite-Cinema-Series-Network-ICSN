@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router'
 import { FiPlay, FiStar, FiClock, FiShield, FiBookmark, FiX, FiCheck, FiChevronLeft, FiChevronRight, FiInfo } from 'react-icons/fi'
 
+import { SMOOTH_EASE } from '../../animations/motionVariants'
+
 // Swiper imports
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules'
@@ -100,7 +102,7 @@ const Banner = () => {
                                     <motion.div
                                         initial={{ opacity: 0, y: 15 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.5 }}
+                                        transition={{ duration: 0.5, ease: SMOOTH_EASE }}
                                         className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/20 px-3.5 py-1.5 text-xs font-bold text-primary backdrop-blur-md"
                                     >
                                         <span className="relative flex h-2 w-2">
@@ -113,9 +115,9 @@ const Banner = () => {
                                     {/* Title */}
                                     <Link to={`/details/${slide.id}`}>
                                         <motion.h1
-                                            initial={{ opacity: 0, y: 20 }}
+                                            initial={{ opacity: 0, y: 18 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.6, delay: 0.1 }}
+                                            transition={{ duration: 0.6, delay: 0.08, ease: SMOOTH_EASE }}
                                             className="font-display text-4xl font-extrabold tracking-tight sm:text-6xl text-base-content drop-shadow-md leading-none hover:text-primary transition-colors cursor-pointer"
                                         >
                                             {slide.title}
@@ -124,9 +126,9 @@ const Banner = () => {
 
                                     {/* Synopsis */}
                                     <motion.p
-                                        initial={{ opacity: 0, y: 20 }}
+                                        initial={{ opacity: 0, y: 18 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.6, delay: 0.2 }}
+                                        transition={{ duration: 0.6, delay: 0.16, ease: SMOOTH_EASE }}
                                         className="text-sm sm:text-base text-base-content/80 leading-relaxed max-w-xl font-medium"
                                     >
                                         {slide.synopsis}
@@ -134,9 +136,9 @@ const Banner = () => {
 
                                     {/* Action Buttons */}
                                     <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
+                                        initial={{ opacity: 0, y: 18 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.6, delay: 0.3 }}
+                                        transition={{ duration: 0.6, delay: 0.24, ease: SMOOTH_EASE }}
                                         className="flex flex-wrap items-center gap-3 pt-2"
                                     >
                                         <motion.button

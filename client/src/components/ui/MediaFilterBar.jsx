@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import {
-    FiFilter,
     FiX,
     FiSearch,
     FiSliders,
@@ -8,7 +7,6 @@ import {
     FiGlobe,
     FiMessageSquare,
     FiTrendingUp,
-    FiStar,
     FiFilm,
     FiCheck,
     FiRotateCcw,
@@ -27,6 +25,8 @@ const AVAILABLE_TYPES = [
 const AVAILABLE_COUNTRIES = [
     { label: 'All Countries', value: '' },
     { label: 'United States', value: 'United States' },
+    { label: 'Bangladesh', value: 'Bangladesh' },
+    { label: 'Pakistan', value: 'Pakistan' },
     { label: 'Japan', value: 'Japan' },
     { label: 'South Korea', value: 'South Korea' },
     { label: 'United Kingdom', value: 'United Kingdom' },
@@ -36,6 +36,8 @@ const AVAILABLE_COUNTRIES = [
 const AVAILABLE_LANGUAGES = [
     { label: 'All Languages', value: '' },
     { label: 'English', value: 'English' },
+    { label: 'Bangla', value: 'Bangla' },
+    { label: 'Urdu', value: 'Urdu' },
     { label: 'Japanese', value: 'Japanese' },
     { label: 'Korean', value: 'Korean' },
     { label: 'German', value: 'German' },
@@ -381,8 +383,8 @@ const MediaFilterBar = ({
                                             type="button"
                                             onClick={() => handleGenreToggle(genre)}
                                             className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 ${isSelected
-                                                    ? 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20 scale-102'
-                                                    : 'bg-base-100/90 text-base-content/75 border border-base-300/70 hover:bg-base-200 hover:text-base-content'
+                                                ? 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20 scale-102'
+                                                : 'bg-base-100/90 text-base-content/75 border border-base-300/70 hover:bg-base-200 hover:text-base-content'
                                                 }`}
                                         >
                                             <GenreIcon

@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import { FiPlay, FiStar, FiBookmark, FiCheck, FiAward } from 'react-icons/fi'
 
+import { cardHoverTransition } from '../../animations/motionVariants'
+
 const MediaCard = ({ item }) => {
     const [isBookmarked, setIsBookmarked] = useState(false)
     const detailsUrl = `/details/${item.id || item._id}`
@@ -10,9 +12,9 @@ const MediaCard = ({ item }) => {
 
     return (
         <motion.article
-            whileHover={{ y: -6, scale: 1.02 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-base-200/60 backdrop-blur-sm shadow-xs transition-all duration-300 ${
+            whileHover={{ y: -6, scale: 1.025 }}
+            transition={cardHoverTransition}
+            className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-base-200/60 backdrop-blur-sm shadow-xs will-change-transform transition-colors duration-300 ${
                 isPremium
                     ? 'border-amber-500/40 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/15'
                     : 'border-base-300/70 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10'
