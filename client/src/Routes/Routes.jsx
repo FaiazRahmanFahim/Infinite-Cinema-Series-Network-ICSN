@@ -8,6 +8,8 @@ import PopularSeriesContent from '../components/features/popular-series/PopularS
 import PopularAnimationContent from '../components/features/popular-animation/PopularAnimationContent'
 import BrowseContent from '../components/features/browse/BrowseContent'
 import PremiumContent from '../components/features/premium/PremiumContent'
+import LogIn from '../pages/LogIn/LogIn'
+import Register from '../pages/Register/Register'
 
 // In-memory data caches to eliminate network fetch delays on tab navigation
 let moviesCache = null
@@ -154,6 +156,14 @@ export const router = createBrowserRouter([
             {
                 path: '/premium/:id',
                 Component: DetailsPage,
+            },
+            {
+                path: '/login',
+                Component: LogIn,
+            },
+            {
+                path: '/register',
+                Component: Register,
             },
         ],
     },

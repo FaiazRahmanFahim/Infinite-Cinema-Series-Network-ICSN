@@ -12,6 +12,7 @@ import {
     FiSmile,
     FiSliders,
     FiAward,
+    FiUser,
 } from 'react-icons/fi'
 import { NavLink, Link, useLocation, useSearchParams, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -176,41 +177,41 @@ const Navbar = () => {
 
     return (
         <header className="sticky top-0 z-40 border-b border-base-300/60 bg-base-100/90 backdrop-blur-xl transition-all duration-300">
-            <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
+            <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-5 lg:px-6">
                 {/* Brand Logo & Desktop Nav */}
-                <div className="flex items-center gap-3 md:gap-5 xl:gap-8">
+                <div className="flex items-center gap-2.5 md:gap-4 xl:gap-6">
                     <Link
                         to="/"
-                        className="group flex items-center gap-2 sm:gap-3"
+                        className="group flex items-center gap-2 sm:gap-2.5"
                         aria-label="ICSN home"
                     >
                         <motion.span
                             whileHover={{ scale: 1.08, rotate: 3 }}
                             whileTap={{ scale: 0.95 }}
-                            className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-xl bg-gradient-to-tr from-primary via-secondary to-accent text-primary-content shadow-md shadow-primary/25"
+                            className="grid h-8 w-8 sm:h-8.5 sm:w-8.5 place-items-center rounded-xl bg-gradient-to-tr from-primary via-secondary to-accent text-primary-content shadow-sm shadow-primary/25"
                         >
-                            <FiFilm className="h-4 w-4 sm:h-5 sm:w-5" />
+                            <FiFilm className="h-4 w-4" />
                         </motion.span>
 
                         <div className="leading-tight">
-                            <p className="font-display text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                            <p className="font-display text-base sm:text-lg font-extrabold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                                 ICSN
                             </p>
-                            <p className="hidden text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.22em] text-base-content/50 sm:block">
+                            <p className="hidden text-[7.5px] sm:text-[8px] font-bold uppercase tracking-[0.2em] text-base-content/50 sm:block">
                                 Infinite Cinema
                             </p>
                         </div>
                     </Link>
 
                     {/* Desktop Navigation Links (Visible on lg: 1024px+) */}
-                    <nav className="hidden items-center gap-0.5 xl:gap-1.5 lg:flex">
+                    <nav className="hidden items-center gap-0.5 xl:gap-1 lg:flex">
                         {navLinks.map(({ path, label, icon: Icon, color, isVip }) => (
                             <NavLink
                                 key={path}
                                 to={path}
                                 end={path === '/'}
                                 className={({ isActive }) =>
-                                    `flex items-center gap-1.5 rounded-xl px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-semibold transition-colors duration-150 ${
+                                    `flex items-center gap-1.5 rounded-lg px-2 xl:px-2.5 py-1 text-xs xl:text-[13px] font-semibold transition-colors duration-150 ${
                                         isActive
                                             ? isVip
                                                 ? 'bg-amber-500/20 text-amber-400 font-bold border border-amber-500/40 shadow-xs'
@@ -223,10 +224,10 @@ const Navbar = () => {
                             >
                                 {({ isActive }) => (
                                     <>
-                                        <Icon className={`h-3.5 w-3.5 xl:h-4 xl:w-4 ${isActive ? color : isVip ? 'text-amber-400' : 'opacity-70'}`} />
+                                        <Icon className={`h-3.5 w-3.5 ${isActive ? color : isVip ? 'text-amber-400' : 'opacity-70'}`} />
                                         <span>{label}</span>
                                         {isVip && (
-                                            <span className="ml-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 px-1 py-0.2 text-[8px] xl:text-[9px] font-extrabold text-black uppercase tracking-wider">
+                                            <span className="ml-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 px-1 py-0.1 text-[7.5px] xl:text-[8px] font-extrabold text-black uppercase tracking-wider">
                                                 VIP
                                             </span>
                                         )}
@@ -238,7 +239,7 @@ const Navbar = () => {
                 </div>
 
                 {/* Right Actions */}
-                <div className="flex items-center gap-1.5 sm:gap-2.5">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                     {/* Interactive Search Bar (Desktop & Tablet sm: 640px+) */}
                     <div className="relative hidden sm:block" ref={searchRef}>
                         <form onSubmit={handleSearchSubmit} className="relative">
@@ -253,7 +254,7 @@ const Navbar = () => {
                                 onChange={handleSearchChange}
                                 placeholder="Search..."
                                 onFocus={() => setSearchFocused(true)}
-                                className="h-8 w-28 md:w-36 lg:w-32 xl:w-44 rounded-full border border-base-300/80 bg-base-200/50 pl-7 pr-6 text-xs font-medium text-base-content placeholder-base-content/40 transition-all duration-300 focus:w-44 md:focus:w-56 focus:border-primary/60 focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                className="h-7.5 w-24 md:w-32 lg:w-28 xl:w-36 rounded-full border border-base-300/80 bg-base-200/50 pl-7 pr-6 text-xs font-medium text-base-content placeholder-base-content/40 transition-all duration-300 focus:w-36 md:focus:w-48 focus:border-primary/60 focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
                             />
                             {searchValue && (
                                 <button
@@ -364,6 +365,17 @@ const Navbar = () => {
 
                     {/* Theme Toggle */}
                     <ThemeToggle />
+
+                    {/* User / Login Button with Text and Icon */}
+                    <Link
+                        to="/login"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-primary to-accent px-2.5 py-1 text-xs font-bold text-primary-content shadow-xs shadow-primary/20 hover:shadow-primary/40 hover:opacity-95 transition-all"
+                        title="Sign In / Account"
+                        aria-label="Sign In"
+                    >
+                        <FiUser className="h-3.5 w-3.5" />
+                        <span>Login</span>
+                    </Link>
 
                     {/* Hamburger Button (Visible on Mobile & Tablet: lg:hidden) */}
                     <button
@@ -608,7 +620,25 @@ const Navbar = () => {
 
                             {/* Sidebar Footer */}
                             <div className="border-t border-base-300/60 pt-4 space-y-3">
-                                <div className="flex items-center justify-between text-xs text-base-content/70">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Link
+                                        to="/login"
+                                        onClick={() => setSidebarOpen(false)}
+                                        className="flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 py-2.5 text-xs font-bold text-primary hover:bg-primary/20 transition-all text-center"
+                                    >
+                                        <FiUser className="h-3.5 w-3.5" />
+                                        <span>Sign In</span>
+                                    </Link>
+                                    <Link
+                                        to="/register"
+                                        onClick={() => setSidebarOpen(false)}
+                                        className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-accent py-2.5 text-xs font-bold text-primary-content shadow-sm hover:opacity-95 transition-all text-center"
+                                    >
+                                        <span>Register</span>
+                                    </Link>
+                                </div>
+
+                                <div className="flex items-center justify-between text-xs text-base-content/70 pt-1">
                                     <span className="font-semibold">Appearance</span>
                                     <ThemeToggle />
                                 </div>
