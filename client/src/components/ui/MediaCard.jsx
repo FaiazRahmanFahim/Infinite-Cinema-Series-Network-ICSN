@@ -1,13 +1,15 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import { FiPlay, FiStar, FiBookmark, FiCheck, FiAward } from 'react-icons/fi'
 
 import { cardHoverTransition } from '../../animations/motionVariants'
+import { useWatchlist } from '../../context/WatchlistContext'
 
 const MediaCard = ({ item }) => {
-    const [isBookmarked, setIsBookmarked] = useState(false)
-    const detailsUrl = `/details/${item.id || item._id}`
+    const { isInWatchlist, toggleWatchlist } = useWatchlist()
+    const itemId = item.id || item._id
+    const isBookmarked = isInWatchlist(itemId)
+    const detailsUrl = `/details/${itemId}`
     const isPremium = item.isPremium || Boolean(item.premiumTier)
 
     return (
@@ -60,11 +62,15 @@ const MediaCard = ({ item }) => {
                         onClick={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
-                            setIsBookmarked((prev) => !prev)
+                            toggleWatchlist(item)
                         }}
-                        className="pointer-events-auto grid h-7 w-7 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition hover:bg-primary hover:text-primary-content"
+                        className={`pointer-events-auto grid h-7 w-7 place-items-center rounded-full backdrop-blur-md transition ${
+                            isBookmarked
+                                ? 'bg-primary text-primary-content shadow-sm shadow-primary/30'
+                                : 'bg-black/40 text-white hover:bg-primary hover:text-primary-content'
+                        }`}
                         aria-label={isBookmarked ? 'Remove from watchlist' : 'Add to watchlist'}
-                        title={isBookmarked ? 'In Watchlist' : 'Add to Watchlist'}
+                        title={isBookmarked ? 'In Watchlist (Click to remove)' : 'Add to Watchlist'}
                     >
                         {isBookmarked ? (
                             <FiCheck className="h-3.5 w-3.5 stroke-[3]" />

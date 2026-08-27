@@ -18,8 +18,10 @@ import { NavLink, Link, useLocation, useSearchParams, useNavigate } from 'react-
 import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from '../ui/ThemeToggle'
 import { SMOOTH_EASE, slideDownVariants } from '../../animations/motionVariants'
+import { useWatchlist } from '../../context/WatchlistContext'
 
 const Navbar = () => {
+    const { count: watchlistCount } = useWatchlist()
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [searchFocused, setSearchFocused] = useState(false)
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
@@ -122,7 +124,7 @@ const Navbar = () => {
         setMobileSearchOpen(false)
 
         const currentPath = location.pathname
-        const targetPath = ['/browse', '/explore', '/movies', '/series', '/animation', '/trending', '/premium'].includes(currentPath)
+        const targetPath = ['/browse', '/explore', '/movies', '/series', '/animation', '/trending', '/premium', '/watchlist'].includes(currentPath)
             ? currentPath
             : '/browse'
 
@@ -351,17 +353,25 @@ const Navbar = () => {
                         <FiSearch className="h-4 w-4" />
                     </button>
 
-                    {/* Bookmark Counter Icon */}
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        type="button"
-                        className="btn btn-ghost btn-circle btn-sm text-base-content/80 hover:text-primary"
-                        title="Watchlist"
+                    {/* Watchlist Counter Button */}
+                    <Link
+                        to="/watchlist"
+                        className="btn btn-ghost btn-circle btn-sm relative text-base-content/80 hover:text-primary transition-colors"
+                        title={`Watchlist (${watchlistCount} saved)`}
                         aria-label="View Watchlist"
                     >
                         <FiBookmark className="h-4 w-4" />
-                    </motion.button>
+                        {watchlistCount > 0 && (
+                            <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                key={watchlistCount}
+                                className="absolute -top-1 -right-1 grid h-4.5 min-w-[1.125rem] place-items-center rounded-full bg-primary px-1 text-[9px] font-black text-primary-content shadow-xs"
+                            >
+                                {watchlistCount > 99 ? '99+' : watchlistCount}
+                            </motion.span>
+                        )}
+                    </Link>
 
                     {/* Theme Toggle */}
                     <ThemeToggle />
@@ -615,6 +625,35 @@ const Navbar = () => {
                                             )}
                                         </NavLink>
                                     ))}
+
+                                    {/* Mobile Watchlist Link */}
+                                    <NavLink
+                                        to="/watchlist"
+                                        onClick={() => setSidebarOpen(false)}
+                                        className={({ isActive }) =>
+                                            `flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
+                                                isActive
+                                                    ? 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20'
+                                                    : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
+                                            }`
+                                        }
+                                    >
+                                        {({ isActive }) => (
+                                            <>
+                                                <div className="flex items-center gap-3">
+                                                    <FiBookmark className={`h-4 w-4 ${isActive ? 'text-primary-content' : 'text-primary'}`} />
+                                                    <span>Watchlist</span>
+                                                </div>
+                                                {watchlistCount > 0 && (
+                                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                                                        isActive ? 'bg-primary-content text-primary' : 'bg-primary text-primary-content'
+                                                    }`}>
+                                                        {watchlistCount}
+                                                    </span>
+                                                )}
+                                            </>
+                                        )}
+                                    </NavLink>
                                 </div>
                             </div>
 

@@ -29,15 +29,16 @@ import {
     scaleInVariants,
     defaultViewport,
 } from '../../../animations/motionVariants'
+import { useWatchlist } from '../../../context/WatchlistContext'
 
 const DetailsPage = () => {
     const { id } = useParams()
     const navigate = useNavigate()
+    const { isInWatchlist, toggleWatchlist } = useWatchlist()
     const [item, setItem] = useState(null)
     const [allMedia, setAllMedia] = useState([])
     const [loading, setLoading] = useState(true)
     const [trailerModalOpen, setTrailerModalOpen] = useState(false)
-    const [isBookmarked, setIsBookmarked] = useState(false)
     const [copied, setCopied] = useState(false)
 
     useEffect(() => {
@@ -331,14 +332,14 @@ const DetailsPage = () => {
                                     whileHover={{ scale: 1.03 }}
                                     whileTap={{ scale: 0.97 }}
                                     type="button"
-                                    onClick={() => setIsBookmarked((prev) => !prev)}
+                                    onClick={() => item && toggleWatchlist(item)}
                                     className={`btn btn-outline gap-2 text-xs sm:text-sm font-bold border-base-300/80 ${
-                                        isBookmarked
-                                            ? 'bg-primary text-primary-content border-primary'
+                                        isInWatchlist(item?.id || item?._id)
+                                            ? 'bg-primary text-primary-content border-primary shadow-md shadow-primary/25'
                                             : 'bg-base-200/60 hover:bg-base-300'
                                     }`}
                                 >
-                                    {isBookmarked ? (
+                                    {isInWatchlist(item?.id || item?._id) ? (
                                         <>
                                             <FiCheck className="h-4 w-4 stroke-[3]" />
                                             <span>In Watchlist</span>

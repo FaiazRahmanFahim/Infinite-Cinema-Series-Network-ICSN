@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { FiPlay, FiStar, FiClock, FiShield, FiBookmark, FiX, FiCheck, FiChevronLeft, FiChevronRight, FiInfo } from 'react-icons/fi'
 
 import { SMOOTH_EASE } from '../../animations/motionVariants'
+import { useWatchlist } from '../../context/WatchlistContext'
 
 // Swiper imports
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -51,14 +52,7 @@ const bannerSlides = [
 
 const Banner = () => {
     const [activeTrailerUrl, setActiveTrailerUrl] = useState(null)
-    const [bookmarkedIds, setBookmarkedIds] = useState({})
-
-    const toggleBookmark = (id) => {
-        setBookmarkedIds((prev) => ({
-            ...prev,
-            [id]: !prev[id],
-        }))
-    }
+    const { isInWatchlist, toggleWatchlist } = useWatchlist()
 
     return (
         <section className="relative w-full overflow-hidden bg-base-300">
@@ -164,14 +158,26 @@ const Banner = () => {
                                             whileHover={{ scale: 1.04 }}
                                             whileTap={{ scale: 0.96 }}
                                             type="button"
-                                            onClick={() => toggleBookmark(slide.id)}
+                                            onClick={() => toggleWatchlist({
+                                                id: slide.id,
+                                                title: slide.title,
+                                                poster: slide.backdrop || slide.poster,
+                                                backdrop: slide.backdrop,
+                                                description: slide.synopsis,
+                                                trailerUrl: slide.trailerUrl,
+                                                runtime: slide.runtime,
+                                                rating: 9.0,
+                                                year: 2024,
+                                                type: 'Movie',
+                                                genres: ['Action', 'Sci-Fi'],
+                                            })}
                                             className={`btn rounded-xl px-5 font-semibold gap-2 border border-base-300 backdrop-blur-md transition-all ${
-                                                bookmarkedIds[slide.id]
-                                                    ? 'btn-success text-success-content'
+                                                isInWatchlist(slide.id)
+                                                    ? 'bg-primary text-primary-content border-primary shadow-md shadow-primary/25'
                                                     : 'btn-outline text-base-content hover:bg-base-200'
                                             }`}
                                         >
-                                            {bookmarkedIds[slide.id] ? (
+                                            {isInWatchlist(slide.id) ? (
                                                 <>
                                                     <FiCheck className="h-4 w-4 stroke-[3]" />
                                                     In Watchlist

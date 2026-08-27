@@ -8,6 +8,7 @@ import PopularSeriesContent from '../components/features/popular-series/PopularS
 import PopularAnimationContent from '../components/features/popular-animation/PopularAnimationContent'
 import BrowseContent from '../components/features/browse/BrowseContent'
 import PremiumContent from '../components/features/premium/PremiumContent'
+import WatchList from '../components/WatchList/WatchList'
 import LogIn from '../pages/LogIn/LogIn'
 import Register from '../pages/Register/Register'
 
@@ -156,6 +157,10 @@ export const router = createBrowserRouter([
             {
                 path: '/premium/:id',
                 Component: DetailsPage,
+            },
+            {
+                path: '/watchlist',
+                Component: WatchList,
             },
             {
                 path: '/login',
