@@ -34,6 +34,7 @@ import {
 } from 'react-icons/fi'
 import { useWatchlist } from '../../context/WatchlistContext'
 import GenreIcon from '../ui/GenreIcon'
+import RecentlyViewedRibbon from '../ui/RecentlyViewedRibbon'
 import {
     pageVariants,
     sectionVariants,
@@ -1183,6 +1184,9 @@ const WatchList = () => {
                     </div>
                 )}
             </div>
+
+            {/* Recently Viewed Media Ribbon */}
+            <RecentlyViewedRibbon maxDisplay={6} />
 
             {/* Random Roulette Picker Modal */}
             <AnimatePresence>

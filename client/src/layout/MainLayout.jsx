@@ -11,6 +11,7 @@ import SectionHeader from '../components/ui/SectionHeader'
 import LoadingGrid from '../components/ui/LoadingGrid'
 import PopularSeriesContent from '../components/features/popular-series/PopularSeriesContent'
 import PopularAnimationContent from '../components/features/popular-animation/PopularAnimationContent'
+import RecentlyViewedRibbon from '../components/ui/RecentlyViewedRibbon'
 import { slideDownVariants } from '../animations/motionVariants'
 
 const popularMoviesPromise = fetch("/popularMovies.json").then((res) => res.json());
@@ -186,6 +187,9 @@ const MainLayout = () => {
             >
                 <TrendingContent trendingContentPromise={trendingContentPromise} />
             </Suspense>
+
+            {/* Recently Viewed Media Ribbon */}
+            <RecentlyViewedRibbon />
         </div>
     )
 }

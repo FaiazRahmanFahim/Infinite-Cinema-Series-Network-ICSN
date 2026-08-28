@@ -30,6 +30,7 @@ import {
     defaultViewport,
 } from '../../../animations/motionVariants'
 import { useWatchlist } from '../../../context/WatchlistContext'
+import { addRecentView } from '../../../utils/recentViews'
 
 const DetailsPage = () => {
     const { id } = useParams()
@@ -68,6 +69,9 @@ const DetailsPage = () => {
                 )
 
                 setItem(found || null)
+                if (found) {
+                    addRecentView(found)
+                }
             } catch (err) {
                 console.error('Failed to load item details:', err)
             } finally {

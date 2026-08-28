@@ -11,6 +11,7 @@ import PremiumContent from '../components/features/premium/PremiumContent'
 import WatchList from '../components/WatchList/WatchList'
 import LogIn from '../pages/LogIn/LogIn'
 import Register from '../pages/Register/Register'
+import NotFound from '../pages/NotFound/NotFound'
 
 // In-memory data caches to eliminate network fetch delays on tab navigation
 let moviesCache = null
@@ -169,6 +170,10 @@ export const router = createBrowserRouter([
             {
                 path: '/register',
                 Component: Register,
+            },
+            {
+                path: '*',
+                Component: NotFound,
             },
         ],
     },
