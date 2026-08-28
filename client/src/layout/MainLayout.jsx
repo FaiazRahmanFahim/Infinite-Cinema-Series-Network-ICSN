@@ -106,6 +106,9 @@ const MainLayout = () => {
                 )}
             </AnimatePresence>
 
+            {/* Recently Viewed Media Ribbon (Shows directly after Hero Section) */}
+            <RecentlyViewedRibbon />
+
             {/* Premium Content Section on Home */}
             <Suspense
                 fallback={
@@ -187,9 +190,6 @@ const MainLayout = () => {
             >
                 <TrendingContent trendingContentPromise={trendingContentPromise} />
             </Suspense>
-
-            {/* Recently Viewed Media Ribbon */}
-            <RecentlyViewedRibbon />
         </div>
     )
 }

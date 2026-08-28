@@ -337,11 +337,10 @@ const DetailsPage = () => {
                                     whileTap={{ scale: 0.97 }}
                                     type="button"
                                     onClick={() => item && toggleWatchlist(item)}
-                                    className={`btn btn-outline gap-2 text-xs sm:text-sm font-bold border-base-300/80 ${
-                                        isInWatchlist(item?.id || item?._id)
+                                    className={`btn btn-outline gap-2 text-xs sm:text-sm font-bold border-base-300/80 ${isInWatchlist(item?.id || item?._id)
                                             ? 'bg-primary text-primary-content border-primary shadow-md shadow-primary/25'
                                             : 'bg-base-200/60 hover:bg-base-300'
-                                    }`}
+                                        }`}
                                 >
                                     {isInWatchlist(item?.id || item?._id) ? (
                                         <>

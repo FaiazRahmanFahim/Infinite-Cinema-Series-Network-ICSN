@@ -46,7 +46,7 @@ const RecentlyViewedRibbon = ({ maxDisplay = 6, showClear = true }) => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
-            className="w-full py-8 sm:py-10 border-t border-base-300/60 bg-base-200/20 backdrop-blur-xs transition-colors"
+            className="w-full py-8 sm:py-10 border-b border-base-300/60 bg-gradient-to-b from-base-200/40 via-base-200/20 to-transparent backdrop-blur-xs transition-colors"
         >
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-5">
                 {/* Header Row */}
