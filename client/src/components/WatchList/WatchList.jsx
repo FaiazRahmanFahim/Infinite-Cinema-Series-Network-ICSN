@@ -30,6 +30,7 @@ import {
     FiCheck,
     FiAlertCircle,
     FiRefreshCw,
+    FiChevronDown,
 } from 'react-icons/fi'
 import { useWatchlist } from '../../context/WatchlistContext'
 import GenreIcon from '../ui/GenreIcon'
@@ -45,19 +46,122 @@ import {
 const STATUS_CONFIG = {
     plan_to_watch: {
         label: 'Plan to Watch',
-        color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-        dotColor: 'bg-blue-400',
+        color: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30 hover:bg-blue-500/25',
+        dotColor: 'bg-blue-500 dark:bg-blue-400',
     },
     watching: {
         label: 'Watching',
-        color: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-        dotColor: 'bg-amber-400',
+        color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/25',
+        dotColor: 'bg-amber-500 dark:bg-amber-400',
     },
     completed: {
         label: 'Completed',
-        color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-        dotColor: 'bg-emerald-400',
+        color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25',
+        dotColor: 'bg-emerald-500 dark:bg-emerald-400',
     },
+}
+
+const STATUS_OPTIONS = [
+    { value: 'plan_to_watch', label: 'Plan to Watch', dotColor: 'bg-blue-500 dark:bg-blue-400' },
+    { value: 'watching', label: 'Currently Watching', dotColor: 'bg-amber-500 dark:bg-amber-400' },
+    { value: 'completed', label: 'Completed', dotColor: 'bg-emerald-500 dark:bg-emerald-400' },
+]
+
+const WatchStatusDropdown = ({ status, onChange, align = 'top', className = '' }) => {
+    const [isOpen, setIsOpen] = useState(false)
+    const dropdownRef = React.useRef(null)
+    const currentStatus = status || 'plan_to_watch'
+    const currentConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.plan_to_watch
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setIsOpen(false)
+            }
+        }
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside)
+            document.addEventListener('touchstart', handleClickOutside)
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+            document.removeEventListener('touchstart', handleClickOutside)
+        }
+    }, [isOpen])
+
+    return (
+        <div ref={dropdownRef} className={`relative ${className}`}>
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    setIsOpen((prev) => !prev)
+                }}
+                className={`flex w-full items-center justify-between gap-1.5 rounded-xl border px-2.5 py-1.5 text-[11px] font-bold backdrop-blur-md transition-all duration-200 cursor-pointer shadow-xs focus:outline-none focus:ring-1 focus:ring-primary/40 ${
+                    isOpen ? 'ring-2 ring-primary/40' : ''
+                } ${currentConfig.color}`}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+                aria-label="Change watch status"
+            >
+                <div className="flex items-center gap-1.5 min-w-0">
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${currentConfig.dotColor}`} />
+                    <span className="truncate">{currentConfig.label}</span>
+                </div>
+                <FiChevronDown
+                    className={`h-3 w-3 shrink-0 opacity-70 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180' : ''
+                    }`}
+                />
+            </button>
+
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.ul
+                        initial={{ opacity: 0, y: align === 'top' ? 6 : -6, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: align === 'top' ? 4 : -4, scale: 0.96 }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
+                        className={`absolute ${
+                            align === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+                        } left-0 right-0 z-50 min-w-[150px] overflow-hidden rounded-xl border border-base-300/90 bg-base-100/95 dark:bg-base-900/95 p-1 backdrop-blur-xl shadow-2xl space-y-0.5`}
+                        role="listbox"
+                    >
+                        {STATUS_OPTIONS.map((opt) => {
+                            const isSelected = currentStatus === opt.value
+                            return (
+                                <li key={opt.value}>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            e.preventDefault()
+                                            onChange(opt.value)
+                                            setIsOpen(false)
+                                        }}
+                                        className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-[11px] font-semibold transition-colors ${
+                                            isSelected
+                                                ? 'bg-base-200/90 dark:bg-base-800 text-base-content font-bold'
+                                                : 'text-base-content/80 hover:bg-base-200/60 dark:hover:bg-base-800/60 hover:text-base-content'
+                                        }`}
+                                        role="option"
+                                        aria-selected={isSelected}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className={`h-2 w-2 rounded-full ${opt.dotColor}`} />
+                                            <span>{opt.label}</span>
+                                        </div>
+                                        {isSelected && <FiCheck className="h-3 w-3 text-primary shrink-0" />}
+                                    </button>
+                                </li>
+                            )
+                        })}
+                    </motion.ul>
+                )}
+            </AnimatePresence>
+        </div>
+    )
 }
 
 const WatchList = () => {
@@ -385,11 +489,10 @@ const WatchList = () => {
                                     <button
                                         type="button"
                                         onClick={() => setSelectionMode((prev) => !prev)}
-                                        className={`btn btn-sm gap-1.5 font-semibold ${
-                                            selectionMode
-                                                ? 'btn-accent text-accent-content'
-                                                : 'btn-outline border-base-300 hover:bg-base-200'
-                                        }`}
+                                        className={`btn btn-sm gap-1.5 font-semibold ${selectionMode
+                                            ? 'btn-accent text-accent-content'
+                                            : 'btn-outline border-base-300 hover:bg-base-200'
+                                            }`}
                                     >
                                         <FiCheckCircle className="h-4 w-4" />
                                         <span>{selectionMode ? 'Done' : 'Select'}</span>
@@ -432,11 +535,12 @@ const WatchList = () => {
                             </div>
 
                             <div className="rounded-2xl border border-base-300/80 bg-base-200/50 p-3.5 backdrop-blur-md">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-base-content/60">
-                                    Movies / Series
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-base-content/60 truncate block" title="Movies / Series / Animations">
+                                    Movies / Series / Anime
                                 </span>
                                 <p className="font-display text-xl font-extrabold text-base-content mt-0.5">
-                                    {stats.movies} <span className="text-xs font-normal text-base-content/50">/</span> {stats.series}
+                                    {stats.movies} <span className="text-xs font-normal text-base-content/50">/</span> {stats.series}{' '}
+                                    <span className="text-xs font-normal text-base-content/50">/</span> {stats.animation}
                                 </p>
                             </div>
 
@@ -535,11 +639,10 @@ const WatchList = () => {
                                         <button
                                             type="button"
                                             onClick={() => setViewMode('grid')}
-                                            className={`btn btn-xs join-item border-0 font-bold ${
-                                                viewMode === 'grid'
-                                                    ? 'bg-primary text-primary-content shadow-xs'
-                                                    : 'btn-ghost text-base-content/70'
-                                            }`}
+                                            className={`btn btn-xs join-item border-0 font-bold ${viewMode === 'grid'
+                                                ? 'bg-primary text-primary-content shadow-xs'
+                                                : 'btn-ghost text-base-content/70'
+                                                }`}
                                             title="Grid View"
                                             aria-label="Grid View"
                                         >
@@ -548,11 +651,10 @@ const WatchList = () => {
                                         <button
                                             type="button"
                                             onClick={() => setViewMode('list')}
-                                            className={`btn btn-xs join-item border-0 font-bold ${
-                                                viewMode === 'list'
-                                                    ? 'bg-primary text-primary-content shadow-xs'
-                                                    : 'btn-ghost text-base-content/70'
-                                            }`}
+                                            className={`btn btn-xs join-item border-0 font-bold ${viewMode === 'list'
+                                                ? 'bg-primary text-primary-content shadow-xs'
+                                                : 'btn-ghost text-base-content/70'
+                                                }`}
                                             title="List View"
                                             aria-label="List View"
                                         >
@@ -577,11 +679,10 @@ const WatchList = () => {
                                             key={id}
                                             type="button"
                                             onClick={() => setTypeFilter(id)}
-                                            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
-                                                typeFilter === id
-                                                    ? 'bg-primary text-primary-content shadow-sm shadow-primary/25'
-                                                    : 'bg-base-100/70 text-base-content/70 hover:bg-base-100 hover:text-base-content border border-base-300/70'
-                                            }`}
+                                            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${typeFilter === id
+                                                ? 'bg-primary text-primary-content shadow-sm shadow-primary/25'
+                                                : 'bg-base-100/70 text-base-content/70 hover:bg-base-100 hover:text-base-content border border-base-300/70'
+                                                }`}
                                         >
                                             <Icon className="h-3.5 w-3.5" />
                                             <span>{label}</span>
@@ -604,11 +705,10 @@ const WatchList = () => {
                                             key={id}
                                             type="button"
                                             onClick={() => setStatusFilter(id)}
-                                            className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
-                                                statusFilter === id
-                                                    ? 'bg-base-content text-base-100 font-bold shadow-xs'
-                                                    : 'text-base-content/60 hover:bg-base-300/60'
-                                            }`}
+                                            className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${statusFilter === id
+                                                ? 'bg-base-content text-base-100 font-bold shadow-xs'
+                                                : 'text-base-content/60 hover:bg-base-300/60'
+                                                }`}
                                         >
                                             {label}
                                         </button>
@@ -625,11 +725,10 @@ const WatchList = () => {
                                     <button
                                         type="button"
                                         onClick={() => setGenreFilter('all')}
-                                        className={`rounded-md px-2 py-0.5 text-[11px] font-semibold transition ${
-                                            genreFilter === 'all'
-                                                ? 'bg-secondary text-secondary-content'
-                                                : 'bg-base-100 text-base-content/70 hover:bg-base-300'
-                                        }`}
+                                        className={`rounded-md px-2 py-0.5 text-[11px] font-semibold transition ${genreFilter === 'all'
+                                            ? 'bg-secondary text-secondary-content'
+                                            : 'bg-base-100 text-base-content/70 hover:bg-base-300'
+                                            }`}
                                     >
                                         All Genres
                                     </button>
@@ -638,11 +737,10 @@ const WatchList = () => {
                                             key={genre}
                                             type="button"
                                             onClick={() => setGenreFilter(genre)}
-                                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold transition ${
-                                                genreFilter === genre
-                                                    ? 'bg-secondary text-secondary-content'
-                                                    : 'bg-base-100 text-base-content/70 hover:bg-base-300'
-                                            }`}
+                                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold transition ${genreFilter === genre
+                                                ? 'bg-secondary text-secondary-content'
+                                                : 'bg-base-100 text-base-content/70 hover:bg-base-300'
+                                                }`}
                                         >
                                             <GenreIcon name={genre} className="h-3 w-3" />
                                             <span>{genre}</span>
@@ -735,13 +833,12 @@ const WatchList = () => {
                                                 key={itemId}
                                                 variants={itemVariants}
                                                 layout
-                                                className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-base-200/60 backdrop-blur-sm shadow-xs transition-all duration-300 ${
-                                                    isSelected
-                                                        ? 'border-accent ring-2 ring-accent shadow-lg shadow-accent/20'
-                                                        : item.isPremium
+                                                className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-base-200/60 backdrop-blur-sm shadow-xs transition-all duration-300 ${isSelected
+                                                    ? 'border-accent ring-2 ring-accent shadow-lg shadow-accent/20'
+                                                    : item.isPremium
                                                         ? 'border-amber-500/40 hover:border-amber-400'
                                                         : 'border-base-300/80 hover:border-primary/50'
-                                                }`}
+                                                    }`}
                                             >
                                                 {/* Card Media Poster */}
                                                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-base-300">
@@ -832,16 +929,12 @@ const WatchList = () => {
 
                                                     {/* Status Dropdown Pill */}
                                                     <div className="pt-1">
-                                                        <select
-                                                            value={item.status || 'plan_to_watch'}
-                                                            onChange={(e) => updateItemStatus(itemId, e.target.value)}
-                                                            className={`select select-xs w-full rounded-lg font-bold text-[10px] border transition ${statusObj?.color}`}
-                                                            aria-label="Change watch status"
-                                                        >
-                                                            <option value="plan_to_watch">Plan to Watch</option>
-                                                            <option value="watching">Currently Watching</option>
-                                                            <option value="completed">Completed</option>
-                                                        </select>
+                                                        <WatchStatusDropdown
+                                                            status={item.status}
+                                                            onChange={(val) => updateItemStatus(itemId, val)}
+                                                            align="top"
+                                                            className="w-full"
+                                                        />
                                                     </div>
                                                 </div>
                                             </motion.article>
@@ -854,7 +947,7 @@ const WatchList = () => {
                                     variants={containerVariants}
                                     initial="hidden"
                                     animate="show"
-                                    className="overflow-hidden rounded-3xl border border-base-300/80 bg-base-200/40 backdrop-blur-md"
+                                    className="rounded-3xl border border-base-300/80 bg-base-200/40 backdrop-blur-md"
                                 >
                                     <div className="divide-y divide-base-300/60">
                                         {filteredWatchlist.map((item) => {
@@ -867,9 +960,8 @@ const WatchList = () => {
                                                     key={itemId}
                                                     variants={itemVariants}
                                                     layout
-                                                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 transition-colors hover:bg-base-200/70 ${
-                                                        isSelected ? 'bg-accent/10' : ''
-                                                    }`}
+                                                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 transition-colors hover:bg-base-200/70 ${isSelected ? 'bg-accent/10' : ''
+                                                        }`}
                                                 >
                                                     <div className="flex items-center gap-3.5 min-w-0">
                                                         {selectionMode && (
@@ -935,16 +1027,12 @@ const WatchList = () => {
                                                             {item.rating ? Number(item.rating).toFixed(1) : 'N/A'}
                                                         </span>
 
-                                                        <select
-                                                            value={item.status || 'plan_to_watch'}
-                                                            onChange={(e) => updateItemStatus(itemId, e.target.value)}
-                                                            className={`select select-xs rounded-lg font-bold text-xs border ${statusObj?.color}`}
-                                                            aria-label="Update status"
-                                                        >
-                                                            <option value="plan_to_watch">Plan to Watch</option>
-                                                            <option value="watching">Watching</option>
-                                                            <option value="completed">Completed</option>
-                                                        </select>
+                                                        <WatchStatusDropdown
+                                                            status={item.status}
+                                                            onChange={(val) => updateItemStatus(itemId, val)}
+                                                            align="top"
+                                                            className="w-36"
+                                                        />
 
                                                         {item.trailerUrl && (
                                                             <button
@@ -1141,9 +1229,8 @@ const WatchList = () => {
                                         <img
                                             src={rouletteItem.poster}
                                             alt={rouletteItem.title}
-                                            className={`h-full w-full object-cover transition duration-300 ${
-                                                isSpinning ? 'blur-xs scale-105' : 'scale-100'
-                                            }`}
+                                            className={`h-full w-full object-cover transition duration-300 ${isSpinning ? 'blur-xs scale-105' : 'scale-100'
+                                                }`}
                                         />
                                         <div className="absolute top-2 right-2 rounded-md bg-black/80 px-2 py-0.5 text-xs font-bold text-amber-400">
                                             ★ {rouletteItem.rating || '8.5'}
