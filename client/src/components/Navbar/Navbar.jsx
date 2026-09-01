@@ -19,8 +19,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from '../ui/ThemeToggle'
 import { SMOOTH_EASE, slideDownVariants } from '../../animations/motionVariants'
 import { useWatchlist } from '../../context/WatchlistContext'
+import { useAuth } from '../../context/AuthProvider'
 
 const Navbar = () => {
+    const { user } = useAuth()
     const { count: watchlistCount } = useWatchlist()
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [searchFocused, setSearchFocused] = useState(false)
@@ -376,16 +378,43 @@ const Navbar = () => {
                     {/* Theme Toggle */}
                     <ThemeToggle />
 
-                    {/* User / Login Button with Text and Icon */}
-                    <Link
-                        to="/login"
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-primary to-accent px-2.5 py-1 text-xs font-bold text-primary-content shadow-xs shadow-primary/20 hover:shadow-primary/40 hover:opacity-95 transition-all"
-                        title="Sign In / Account"
-                        aria-label="Sign In"
-                    >
-                        <FiUser className="h-3.5 w-3.5" />
-                        <span>Login</span>
-                    </Link>
+                    {/* User Auth: Login button when guest, User Profile Avatar when logged in */}
+                    {user ? (
+                        <Link
+                            to="/profile"
+                            className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-base-200/80 p-0.5 pr-2.5 text-xs font-bold text-base-content hover:border-primary hover:bg-base-200 transition-all shadow-xs group"
+                            title={`Logged in as ${user.name || user.email || 'User'}`}
+                            aria-label="View Profile"
+                        >
+                            {user.photoURL || user.image || user.avatar ? (
+                                <img
+                                    src={user.photoURL || user.image || user.avatar}
+                                    alt={user.name || 'User'}
+                                    className="h-7 w-7 rounded-full object-cover border border-primary/50 shadow-xs shrink-0"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none'
+                                    }}
+                                />
+                            ) : (
+                                <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-tr from-primary to-accent text-primary-content text-xs font-black shadow-xs shrink-0">
+                                    {user.name ? user.name.charAt(0).toUpperCase() : <FiUser className="h-3.5 w-3.5" />}
+                                </span>
+                            )}
+                            <span className="max-w-[80px] sm:max-w-[110px] truncate group-hover:text-primary transition-colors">
+                                {user.name || 'Profile'}
+                            </span>
+                        </Link>
+                    ) : (
+                        <Link
+                            to="/login"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-accent px-3 py-1.5 text-xs font-bold text-primary-content shadow-xs shadow-primary/20 hover:shadow-primary/40 hover:opacity-95 transition-all"
+                            title="Sign In / Account"
+                            aria-label="Sign In"
+                        >
+                            <FiUser className="h-3.5 w-3.5" />
+                            <span>Login</span>
+                        </Link>
+                    )}
 
                     {/* Hamburger Button (Visible on Mobile & Tablet: lg:hidden) */}
                     <button
@@ -654,28 +683,87 @@ const Navbar = () => {
                                             </>
                                         )}
                                     </NavLink>
+
+                                    {/* Mobile Profile & Dashboard Link (Visible only after login) */}
+                                    {user && (
+                                        <NavLink
+                                            to="/profile"
+                                            onClick={() => setSidebarOpen(false)}
+                                            className={({ isActive }) =>
+                                                `flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
+                                                    isActive
+                                                        ? 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20'
+                                                        : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
+                                                }`
+                                            }
+                                        >
+                                            {({ isActive }) => (
+                                                <>
+                                                    <div className="flex items-center gap-3">
+                                                        <FiUser className={`h-4 w-4 ${isActive ? 'text-primary-content' : 'text-primary'}`} />
+                                                        <span>My Profile & Stats</span>
+                                                    </div>
+                                                    <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold ${
+                                                        isActive ? 'bg-primary-content/20 text-primary-content' : 'bg-primary/10 text-primary'
+                                                    }`}>
+                                                        Dashboard
+                                                    </span>
+                                                </>
+                                            )}
+                                        </NavLink>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Sidebar Footer */}
                             <div className="border-t border-base-300/60 pt-4 space-y-3">
-                                <div className="grid grid-cols-2 gap-2">
+                                {user ? (
                                     <Link
-                                        to="/login"
+                                        to="/profile"
                                         onClick={() => setSidebarOpen(false)}
-                                        className="flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 py-2.5 text-xs font-bold text-primary hover:bg-primary/20 transition-all text-center"
+                                        className="flex items-center justify-between rounded-2xl border border-primary/40 bg-primary/10 p-3 text-xs font-bold text-primary hover:bg-primary/20 transition-all"
                                     >
-                                        <FiUser className="h-3.5 w-3.5" />
-                                        <span>Sign In</span>
+                                        <div className="flex items-center gap-2.5">
+                                            {user.photoURL || user.image || user.avatar ? (
+                                                <img
+                                                    src={user.photoURL || user.image || user.avatar}
+                                                    alt={user.name || 'User'}
+                                                    className="h-8 w-8 rounded-xl object-cover border border-primary/50 shrink-0"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-tr from-primary to-accent text-primary-content font-black text-xs shrink-0">
+                                                    {user.name ? user.name.charAt(0).toUpperCase() : <FiUser className="h-4 w-4" />}
+                                                </span>
+                                            )}
+                                            <div className="text-left">
+                                                <p className="font-display text-xs font-bold text-base-content truncate max-w-[140px]">{user.name || 'Cinephile'}</p>
+                                                <p className="text-[10px] text-primary font-semibold">Dashboard & Stats &rarr;</p>
+                                            </div>
+                                        </div>
+                                        <span className="rounded bg-gradient-to-r from-amber-500 to-orange-500 px-1.5 py-0.5 text-[9px] font-black text-black">VIP</span>
                                     </Link>
-                                    <Link
-                                        to="/register"
-                                        onClick={() => setSidebarOpen(false)}
-                                        className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-accent py-2.5 text-xs font-bold text-primary-content shadow-sm hover:opacity-95 transition-all text-center"
-                                    >
-                                        <span>Register</span>
-                                    </Link>
-                                </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Link
+                                            to="/login"
+                                            onClick={() => setSidebarOpen(false)}
+                                            className="flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 py-2.5 text-xs font-bold text-primary hover:bg-primary/20 transition-all text-center"
+                                        >
+                                            <FiUser className="h-3.5 w-3.5" />
+                                            <span>Sign In</span>
+                                        </Link>
+                                        <Link
+                                            to="/register"
+                                            onClick={() => setSidebarOpen(false)}
+                                            className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-accent py-2.5 text-xs font-bold text-primary-content shadow-sm hover:opacity-95 transition-all text-center"
+                                        >
+                                            <span>Register</span>
+                                        </Link>
+                                    </div>
+                                )}
 
                                 <div className="flex items-center justify-between text-xs text-base-content/70 pt-1">
                                     <span className="font-semibold">Appearance</span>

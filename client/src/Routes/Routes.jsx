@@ -12,6 +12,7 @@ import WatchList from '../components/WatchList/WatchList'
 import LogIn from '../pages/LogIn/LogIn'
 import Register from '../pages/Register/Register'
 import NotFound from '../pages/NotFound/NotFound'
+import Profile from '../pages/Profile/Profile'
 
 // In-memory data caches to eliminate network fetch delays on tab navigation
 let moviesCache = null
@@ -162,6 +163,10 @@ export const router = createBrowserRouter([
             {
                 path: '/watchlist',
                 Component: WatchList,
+            },
+            {
+                path: '/profile',
+                Component: Profile,
             },
             {
                 path: '/login',
