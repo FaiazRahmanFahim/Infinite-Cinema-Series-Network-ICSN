@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import {
     FiFilm,
     FiSearch,
@@ -13,6 +14,7 @@ import {
     FiSliders,
     FiAward,
     FiUser,
+    FiCalendar,
 } from 'react-icons/fi'
 import { NavLink, Link, useLocation, useSearchParams, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -113,6 +115,7 @@ const Navbar = () => {
         { path: '/series', label: 'Series', icon: FiTv, color: 'text-secondary' },
         { path: '/animation', label: 'Animation', icon: FiSmile, color: 'text-warning' },
         { path: '/trending', label: 'Trending', icon: FiTrendingUp, color: 'text-accent' },
+        { path: '/upcoming', label: 'Upcoming', icon: FiCalendar, color: 'text-rose-400' },
         { path: '/premium', label: 'Premium', icon: FiAward, color: 'text-amber-400', isVip: true },
         { path: '/browse', label: 'Explore', icon: FiSliders, color: 'text-primary' },
     ]
@@ -126,7 +129,7 @@ const Navbar = () => {
         setMobileSearchOpen(false)
 
         const currentPath = location.pathname
-        const targetPath = ['/browse', '/explore', '/movies', '/series', '/animation', '/trending', '/premium', '/watchlist'].includes(currentPath)
+        const targetPath = ['/browse', '/explore', '/movies', '/series', '/animation', '/trending', '/upcoming', '/premium', '/watchlist'].includes(currentPath)
             ? currentPath
             : '/browse'
 
@@ -180,7 +183,8 @@ const Navbar = () => {
         : []
 
     return (
-        <header className="sticky top-0 z-40 border-b border-base-300/60 bg-base-100/90 backdrop-blur-xl transition-all duration-300">
+        <>
+            <header className="sticky top-0 z-40 border-b border-base-300/60 bg-base-100/90 backdrop-blur-xl transition-all duration-300">
             <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-5 lg:px-6">
                 {/* Brand Logo & Desktop Nav */}
                 <div className="flex items-center gap-2.5 md:gap-4 xl:gap-6">
@@ -201,9 +205,9 @@ const Navbar = () => {
                             <p className="font-display text-base sm:text-lg font-extrabold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                                 ICSN
                             </p>
-                            <p className="hidden text-[7.5px] sm:text-[8px] font-bold uppercase tracking-[0.2em] text-base-content/50 sm:block">
+                            {/* <p className="hidden text-[7.5px] sm:text-[8px] font-bold uppercase tracking-[0.2em] text-base-content/50 sm:block">
                                 Infinite Cinema
-                            </p>
+                            </p> */}
                         </div>
                     </Link>
 
@@ -215,12 +219,11 @@ const Navbar = () => {
                                 to={path}
                                 end={path === '/'}
                                 className={({ isActive }) =>
-                                    `flex items-center gap-1.5 rounded-lg px-2 xl:px-2.5 py-1 text-xs xl:text-[13px] font-semibold transition-colors duration-150 ${
-                                        isActive
-                                            ? isVip
-                                                ? 'bg-amber-500/20 text-amber-400 font-bold border border-amber-500/40 shadow-xs'
-                                                : 'bg-primary/10 text-primary font-bold shadow-xs border border-primary/20'
-                                            : isVip
+                                    `flex items-center gap-1.5 rounded-lg px-2 xl:px-2.5 py-1 text-xs xl:text-[13px] font-semibold transition-colors duration-150 ${isActive
+                                        ? isVip
+                                            ? 'bg-amber-500/20 text-amber-400 font-bold border border-amber-500/40 shadow-xs'
+                                            : 'bg-primary/10 text-primary font-bold shadow-xs border border-primary/20'
+                                        : isVip
                                             ? 'text-amber-400/90 hover:bg-amber-500/10 hover:text-amber-300'
                                             : 'text-base-content/70 hover:bg-base-200/80 hover:text-base-content'
                                     }`
@@ -248,9 +251,8 @@ const Navbar = () => {
                     <div className="relative hidden sm:block" ref={searchRef}>
                         <form onSubmit={handleSearchSubmit} className="relative">
                             <FiSearch
-                                className={`absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 transition-colors ${
-                                    searchFocused ? 'text-primary' : 'text-base-content/40'
-                                }`}
+                                className={`absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 transition-colors ${searchFocused ? 'text-primary' : 'text-base-content/40'
+                                    }`}
                             />
                             <input
                                 type="text"
@@ -495,295 +497,293 @@ const Navbar = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+        </header>
 
-            {/* Slide-out Offcanvas Sidebar Drawer (For Mobile & Tablet mode) */}
-            <AnimatePresence>
-                {sidebarOpen && (
-                    <div className="fixed inset-0 z-50 lg:hidden">
-                        {/* Backdrop Blur Overlay */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.25 }}
-                            onClick={() => setSidebarOpen(false)}
-                            className="fixed inset-0 bg-black/65 backdrop-blur-sm"
-                            aria-hidden="true"
-                        />
+            {/* Slide-out Offcanvas Sidebar Drawer (Portaled directly to body to avoid header clipping) */}
+            {typeof document !== 'undefined' &&
+                createPortal(
+                    <AnimatePresence>
+                        {sidebarOpen && (
+                            <div className="fixed inset-0 z-[100] lg:hidden">
+                                {/* Backdrop Blur Overlay */}
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.25 }}
+                                    onClick={() => setSidebarOpen(false)}
+                                    className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm"
+                                    aria-hidden="true"
+                                />
 
-                        {/* Slide-Out Sidebar Panel */}
-                        <motion.div
-                            initial={{ x: '100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '100%' }}
-                            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                            className="fixed right-0 top-0 bottom-0 flex h-full w-[85vw] max-w-sm flex-col justify-between overflow-y-auto border-l border-base-300/80 bg-base-100/98 p-5 shadow-2xl backdrop-blur-2xl"
-                            role="dialog"
-                            aria-label="Sidebar navigation"
-                        >
-                            <div className="space-y-4">
-                                {/* Sidebar Top Header */}
-                                <div className="flex items-center justify-between border-b border-base-300/60 pb-3">
-                                    <Link
-                                        to="/"
-                                        onClick={() => setSidebarOpen(false)}
-                                        className="flex items-center gap-2.5"
-                                    >
-                                        <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-tr from-primary via-secondary to-accent text-primary-content shadow-md shadow-primary/25">
-                                            <FiFilm className="h-4 w-4" />
-                                        </span>
-                                        <div>
-                                            <p className="font-display text-lg font-extrabold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                                                ICSN
-                                            </p>
-                                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-base-content/50">
-                                                Infinite Cinema
-                                            </p>
-                                        </div>
-                                    </Link>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setSidebarOpen(false)}
-                                        className="btn btn-ghost btn-circle btn-sm text-base-content/70 hover:text-base-content"
-                                        aria-label="Close sidebar"
-                                    >
-                                        <FiX className="h-5 w-5" />
-                                    </button>
-                                </div>
-
-                                {/* Sidebar Search Bar */}
-                                <div className="relative w-full" ref={sidebarSearchRef}>
-                                    <form onSubmit={handleSearchSubmit} className="relative">
-                                        <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40 h-4 w-4" />
-                                        <input
-                                            type="text"
-                                            value={searchValue}
-                                            onChange={handleSearchChange}
-                                            placeholder="Search movies, series, cast..."
-                                            className="h-10 w-full rounded-xl border border-base-300 bg-base-200/60 pl-9 pr-9 text-xs font-medium focus:border-primary focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                                        />
-                                        {searchValue && (
-                                            <button
-                                                type="button"
-                                                onClick={handleClearSearch}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content"
-                                                aria-label="Clear search"
+                                {/* Slide-Out Sidebar Panel */}
+                                <motion.div
+                                    initial={{ x: '100%' }}
+                                    animate={{ x: 0 }}
+                                    exit={{ x: '100%' }}
+                                    transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+                                    className="fixed right-0 top-0 bottom-0 z-[101] flex h-full h-dvh w-[85vw] max-w-sm flex-col justify-between overflow-y-auto border-l border-base-300/80 bg-base-100 p-5 shadow-2xl"
+                                    role="dialog"
+                                    aria-label="Sidebar navigation"
+                                >
+                                    <div className="space-y-4">
+                                        {/* Sidebar Top Header */}
+                                        <div className="flex items-center justify-between border-b border-base-300/60 pb-3">
+                                            <Link
+                                                to="/"
+                                                onClick={() => setSidebarOpen(false)}
+                                                className="flex items-center gap-2.5"
                                             >
-                                                <FiX className="h-4 w-4" />
-                                            </button>
-                                        )}
-                                    </form>
-
-                                    {/* Sidebar Live Search Suggestions */}
-                                    {searchValue.trim().length > 0 && (
-                                        <div className="mt-2 rounded-xl border border-base-300/60 bg-base-200/60 p-2 space-y-1">
-                                            {searchSuggestions.slice(0, 3).map((item) => (
-                                                <Link
-                                                    key={item.id}
-                                                    to={`/details/${item.id}`}
-                                                    onClick={() => setSidebarOpen(false)}
-                                                    className="flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-base-100 transition-colors"
-                                                >
-                                                    <img
-                                                        src={item.poster}
-                                                        alt={item.title}
-                                                        className="h-9 w-7 rounded object-cover shrink-0"
-                                                    />
-                                                    <div className="min-w-0 flex-1 text-xs">
-                                                        <p className="font-bold truncate text-base-content">{item.title}</p>
-                                                        <p className="text-[10px] text-base-content/50">{item.type} • {item.year}</p>
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                            <button
-                                                type="button"
-                                                onClick={handleSearchSubmit}
-                                                className="w-full text-center py-1.5 text-[11px] font-bold text-primary hover:underline block"
-                                            >
-                                                View all results &rarr;
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Sidebar Nav Links */}
-                                <div className="space-y-1">
-                                    <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-base-content/40">
-                                        Navigation
-                                    </p>
-                                    {navLinks.map(({ path, label, icon: Icon, color, isVip }) => (
-                                        <NavLink
-                                            key={path}
-                                            to={path}
-                                            end={path === '/'}
-                                            onClick={() => setSidebarOpen(false)}
-                                            className={({ isActive }) =>
-                                                `flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
-                                                    isActive
-                                                        ? isVip
-                                                            ? 'bg-amber-500 text-black font-extrabold shadow-md shadow-amber-500/20'
-                                                            : 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20'
-                                                        : isVip
-                                                        ? 'text-amber-400 hover:bg-amber-500/10'
-                                                        : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
-                                                }`
-                                            }
-                                        >
-                                            {({ isActive }) => (
-                                                <>
-                                                    <div className="flex items-center gap-3">
-                                                        <Icon className={`h-4 w-4 ${isActive ? (isVip ? 'text-black' : 'text-primary-content') : color}`} />
-                                                        <span>{label}</span>
-                                                    </div>
-                                                    {isVip && (
-                                                        <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${
-                                                            isActive ? 'bg-black/30 text-black' : 'bg-amber-500/20 text-amber-400'
-                                                        }`}>
-                                                            VIP
-                                                        </span>
-                                                    )}
-                                                    {path === '/browse' && (
-                                                        <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                                                            isActive ? 'bg-primary-content/20 text-primary-content' : 'bg-primary/10 text-primary'
-                                                        }`}>
-                                                            Filters
-                                                        </span>
-                                                    )}
-                                                </>
-                                            )}
-                                        </NavLink>
-                                    ))}
-
-                                    {/* Mobile Watchlist Link */}
-                                    <NavLink
-                                        to="/watchlist"
-                                        onClick={() => setSidebarOpen(false)}
-                                        className={({ isActive }) =>
-                                            `flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
-                                                isActive
-                                                    ? 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20'
-                                                    : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
-                                            }`
-                                        }
-                                    >
-                                        {({ isActive }) => (
-                                            <>
-                                                <div className="flex items-center gap-3">
-                                                    <FiBookmark className={`h-4 w-4 ${isActive ? 'text-primary-content' : 'text-primary'}`} />
-                                                    <span>Watchlist</span>
+                                                <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-tr from-primary via-secondary to-accent text-primary-content shadow-md shadow-primary/25 shrink-0">
+                                                    <FiFilm className="h-4 w-4" />
+                                                </span>
+                                                <div className="leading-tight">
+                                                    <p className="font-display text-lg font-extrabold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                                                        ICSN
+                                                    </p>
+                                                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-base-content/60">
+                                                        Infinite Cinema
+                                                    </p>
                                                 </div>
-                                                {watchlistCount > 0 && (
-                                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
-                                                        isActive ? 'bg-primary-content text-primary' : 'bg-primary text-primary-content'
-                                                    }`}>
-                                                        {watchlistCount}
-                                                    </span>
-                                                )}
-                                            </>
-                                        )}
-                                    </NavLink>
+                                            </Link>
 
-                                    {/* Mobile Profile & Dashboard Link (Visible only after login) */}
-                                    {user && (
-                                        <NavLink
-                                            to="/profile"
-                                            onClick={() => setSidebarOpen(false)}
-                                            className={({ isActive }) =>
-                                                `flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
-                                                    isActive
+                                            <button
+                                                type="button"
+                                                onClick={() => setSidebarOpen(false)}
+                                                className="btn btn-ghost btn-circle btn-sm text-base-content/70 hover:text-base-content"
+                                                aria-label="Close sidebar"
+                                            >
+                                                <FiX className="h-5 w-5" />
+                                            </button>
+                                        </div>
+
+                                        {/* Sidebar Search Bar */}
+                                        <div className="relative w-full" ref={sidebarSearchRef}>
+                                            <form onSubmit={handleSearchSubmit} className="relative">
+                                                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40 h-4 w-4" />
+                                                <input
+                                                    type="text"
+                                                    value={searchValue}
+                                                    onChange={handleSearchChange}
+                                                    placeholder="Search movies, series, cast..."
+                                                    className="h-10 w-full rounded-xl border border-base-300 bg-base-200/60 pl-9 pr-9 text-xs font-medium focus:border-primary focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                                />
+                                                {searchValue && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleClearSearch}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content"
+                                                        aria-label="Clear search"
+                                                    >
+                                                        <FiX className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </form>
+
+                                            {/* Sidebar Live Search Suggestions */}
+                                            {searchValue.trim().length > 0 && (
+                                                <div className="mt-2 rounded-xl border border-base-300/60 bg-base-200/60 p-2 space-y-1">
+                                                    {searchSuggestions.slice(0, 3).map((item) => (
+                                                        <Link
+                                                            key={item.id}
+                                                            to={`/details/${item.id}`}
+                                                            onClick={() => setSidebarOpen(false)}
+                                                            className="flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-base-100 transition-colors"
+                                                        >
+                                                            <img
+                                                                src={item.poster}
+                                                                alt={item.title}
+                                                                className="h-9 w-7 rounded object-cover shrink-0"
+                                                            />
+                                                            <div className="min-w-0 flex-1 text-xs">
+                                                                <p className="font-bold truncate text-base-content">{item.title}</p>
+                                                                <p className="text-[10px] text-base-content/50">{item.type} • {item.year}</p>
+                                                            </div>
+                                                        </Link>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleSearchSubmit}
+                                                        className="w-full text-center py-1.5 text-[11px] font-bold text-primary hover:underline block"
+                                                    >
+                                                        View all results &rarr;
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Sidebar Nav Links */}
+                                        <div className="space-y-1">
+                                            <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-base-content/40">
+                                                Navigation
+                                            </p>
+                                            {navLinks.map(({ path, label, icon: Icon, color, isVip }) => (
+                                                <NavLink
+                                                    key={path}
+                                                    to={path}
+                                                    end={path === '/'}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                    className={({ isActive }) =>
+                                                        `flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${isActive
+                                                            ? isVip
+                                                                ? 'bg-amber-500 text-black font-extrabold shadow-md shadow-amber-500/20'
+                                                                : 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20'
+                                                            : isVip
+                                                                ? 'text-amber-400 hover:bg-amber-500/10'
+                                                                : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
+                                                        }`
+                                                    }
+                                                >
+                                                    {({ isActive }) => (
+                                                        <>
+                                                            <div className="flex items-center gap-3">
+                                                                <Icon className={`h-4 w-4 ${isActive ? (isVip ? 'text-black' : 'text-primary-content') : color}`} />
+                                                                <span>{label}</span>
+                                                            </div>
+                                                            {isVip && (
+                                                                <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${isActive ? 'bg-black/30 text-black' : 'bg-amber-500/20 text-amber-400'
+                                                                    }`}>
+                                                                    VIP
+                                                                </span>
+                                                            )}
+                                                            {path === '/browse' && (
+                                                                <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${isActive ? 'bg-primary-content/20 text-primary-content' : 'bg-primary/10 text-primary'
+                                                                    }`}>
+                                                                    Filters
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </NavLink>
+                                            ))}
+
+                                            {/* Mobile Watchlist Link */}
+                                            <NavLink
+                                                to="/watchlist"
+                                                onClick={() => setSidebarOpen(false)}
+                                                className={({ isActive }) =>
+                                                    `flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${isActive
                                                         ? 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20'
                                                         : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
-                                                }`
-                                            }
-                                        >
-                                            {({ isActive }) => (
-                                                <>
-                                                    <div className="flex items-center gap-3">
-                                                        <FiUser className={`h-4 w-4 ${isActive ? 'text-primary-content' : 'text-primary'}`} />
-                                                        <span>My Profile & Stats</span>
-                                                    </div>
-                                                    <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold ${
-                                                        isActive ? 'bg-primary-content/20 text-primary-content' : 'bg-primary/10 text-primary'
-                                                    }`}>
-                                                        Dashboard
-                                                    </span>
-                                                </>
-                                            )}
-                                        </NavLink>
-                                    )}
-                                </div>
-                            </div>
+                                                    }`
+                                                }
+                                            >
+                                                {({ isActive }) => (
+                                                    <>
+                                                        <div className="flex items-center gap-3">
+                                                            <FiBookmark className={`h-4 w-4 ${isActive ? 'text-primary-content' : 'text-primary'}`} />
+                                                            <span>Watchlist</span>
+                                                        </div>
+                                                        {watchlistCount > 0 && (
+                                                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${isActive ? 'bg-primary-content text-primary' : 'bg-primary text-primary-content'
+                                                                }`}>
+                                                                {watchlistCount}
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </NavLink>
 
-                            {/* Sidebar Footer */}
-                            <div className="border-t border-base-300/60 pt-4 space-y-3">
-                                {user ? (
-                                    <Link
-                                        to="/profile"
-                                        onClick={() => setSidebarOpen(false)}
-                                        className="flex items-center justify-between rounded-2xl border border-primary/40 bg-primary/10 p-3 text-xs font-bold text-primary hover:bg-primary/20 transition-all"
-                                    >
-                                        <div className="flex items-center gap-2.5">
-                                            {user.photoURL || user.image || user.avatar ? (
-                                                <img
-                                                    src={user.photoURL || user.image || user.avatar}
-                                                    alt={user.name || 'User'}
-                                                    className="h-8 w-8 rounded-xl object-cover border border-primary/50 shrink-0"
-                                                    onError={(e) => {
-                                                        e.currentTarget.style.display = 'none'
-                                                    }}
-                                                />
-                                            ) : (
-                                                <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-tr from-primary to-accent text-primary-content font-black text-xs shrink-0">
-                                                    {user.name ? user.name.charAt(0).toUpperCase() : <FiUser className="h-4 w-4" />}
-                                                </span>
+                                            {/* Mobile Profile & Dashboard Link (Visible only after login) */}
+                                            {user && (
+                                                <NavLink
+                                                    to="/profile"
+                                                    onClick={() => setSidebarOpen(false)}
+                                                    className={({ isActive }) =>
+                                                        `flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${isActive
+                                                            ? 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20'
+                                                            : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
+                                                        }`
+                                                    }
+                                                >
+                                                    {({ isActive }) => (
+                                                        <>
+                                                            <div className="flex items-center gap-3">
+                                                                <FiUser className={`h-4 w-4 ${isActive ? 'text-primary-content' : 'text-primary'}`} />
+                                                                <span>My Profile & Stats</span>
+                                                            </div>
+                                                            <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold ${isActive ? 'bg-primary-content/20 text-primary-content' : 'bg-primary/10 text-primary'
+                                                                }`}>
+                                                                Dashboard
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                </NavLink>
                                             )}
-                                            <div className="text-left">
-                                                <p className="font-display text-xs font-bold text-base-content truncate max-w-[140px]">{user.name || 'Cinephile'}</p>
-                                                <p className="text-[10px] text-primary font-semibold">Dashboard & Stats &rarr;</p>
-                                            </div>
                                         </div>
-                                        <span className="rounded bg-gradient-to-r from-amber-500 to-orange-500 px-1.5 py-0.5 text-[9px] font-black text-black">VIP</span>
-                                    </Link>
-                                ) : (
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <Link
-                                            to="/login"
-                                            onClick={() => setSidebarOpen(false)}
-                                            className="flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 py-2.5 text-xs font-bold text-primary hover:bg-primary/20 transition-all text-center"
-                                        >
-                                            <FiUser className="h-3.5 w-3.5" />
-                                            <span>Sign In</span>
-                                        </Link>
-                                        <Link
-                                            to="/register"
-                                            onClick={() => setSidebarOpen(false)}
-                                            className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-accent py-2.5 text-xs font-bold text-primary-content shadow-sm hover:opacity-95 transition-all text-center"
-                                        >
-                                            <span>Register</span>
-                                        </Link>
                                     </div>
-                                )}
 
-                                <div className="flex items-center justify-between text-xs text-base-content/70 pt-1">
-                                    <span className="font-semibold">Appearance</span>
-                                    <ThemeToggle />
-                                </div>
+                                    {/* Sidebar Footer */}
+                                    <div className="border-t border-base-300/60 pt-4 space-y-3">
+                                        {user ? (
+                                            <Link
+                                                to="/profile"
+                                                onClick={() => setSidebarOpen(false)}
+                                                className="flex items-center justify-between rounded-2xl border border-primary/40 bg-primary/10 p-3 text-xs font-bold text-primary hover:bg-primary/20 transition-all"
+                                            >
+                                                <div className="flex items-center gap-2.5">
+                                                    {user.photoURL || user.image || user.avatar ? (
+                                                        <img
+                                                            src={user.photoURL || user.image || user.avatar}
+                                                            alt={user.name || 'User'}
+                                                            className="h-8 w-8 rounded-xl object-cover border border-primary/50 shrink-0"
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none'
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-tr from-primary to-accent text-primary-content font-black text-xs shrink-0">
+                                                            {user.name ? user.name.charAt(0).toUpperCase() : <FiUser className="h-4 w-4" />}
+                                                        </span>
+                                                    )}
+                                                    <div className="text-left">
+                                                        <p className="font-display text-xs font-bold text-base-content truncate max-w-[140px]">{user.name || 'Cinephile'}</p>
+                                                        <p className="text-[10px] text-primary font-semibold">Dashboard & Stats &rarr;</p>
+                                                    </div>
+                                                </div>
+                                                <span className="rounded bg-gradient-to-r from-amber-500 to-orange-500 px-1.5 py-0.5 text-[9px] font-black text-black">VIP</span>
+                                            </Link>
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <Link
+                                                    to="/login"
+                                                    onClick={() => setSidebarOpen(false)}
+                                                    className="flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 py-2.5 text-xs font-bold text-primary hover:bg-primary/20 transition-all text-center"
+                                                >
+                                                    <FiUser className="h-3.5 w-3.5" />
+                                                    <span>Sign In</span>
+                                                </Link>
+                                                <Link
+                                                    to="/register"
+                                                    onClick={() => setSidebarOpen(false)}
+                                                    className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-accent py-2.5 text-xs font-bold text-primary-content shadow-sm hover:opacity-95 transition-all text-center"
+                                                >
+                                                    <span>Register</span>
+                                                </Link>
+                                            </div>
+                                        )}
 
-                                <div className="rounded-xl bg-base-200/50 p-2.5 text-center">
-                                    <p className="text-[11px] font-bold text-base-content/70">
-                                        Infinite Cinema Series Network
-                                    </p>
-                                    <p className="text-[9px] text-base-content/40">
-                                        &copy; 2026 ICSN. All rights reserved.
-                                    </p>
-                                </div>
+                                        <div className="flex items-center justify-between text-xs text-base-content/70 pt-1">
+                                            <span className="font-semibold">Appearance</span>
+                                            <ThemeToggle />
+                                        </div>
+
+                                        <div className="rounded-xl bg-base-200/50 p-2.5 text-center">
+                                            <p className="text-[11px] font-bold text-base-content/70">
+                                                Infinite Cinema Series Network
+                                            </p>
+                                            <p className="text-[9px] text-base-content/40">
+                                                &copy; 2026 ICSN. All rights reserved.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
                             </div>
-                        </motion.div>
-                    </div>
+                        )}
+                    </AnimatePresence>,
+                    document.body
                 )}
-            </AnimatePresence>
-        </header>
+        </>
     )
 }
 

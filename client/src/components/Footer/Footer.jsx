@@ -23,7 +23,7 @@ const Footer = () => {
                                 ICSN
                             </p>
                             <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-base-content/50">
-                                Infinite Cinema
+                                Infinite Cinema & Series Network
                             </p>
                         </div>
                     </Link>

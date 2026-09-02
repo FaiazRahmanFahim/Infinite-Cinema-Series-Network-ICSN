@@ -13,6 +13,7 @@ import LogIn from '../pages/LogIn/LogIn'
 import Register from '../pages/Register/Register'
 import NotFound from '../pages/NotFound/NotFound'
 import Profile from '../pages/Profile/Profile'
+import Upcoming from '../pages/Upcoming/Upcoming'
 
 // In-memory data caches to eliminate network fetch delays on tab navigation
 let moviesCache = null
@@ -163,6 +164,10 @@ export const router = createBrowserRouter([
             {
                 path: '/watchlist',
                 Component: WatchList,
+            },
+            {
+                path: '/upcoming',
+                Component: Upcoming,
             },
             {
                 path: '/profile',
