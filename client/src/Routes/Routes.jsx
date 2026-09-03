@@ -14,6 +14,10 @@ import Register from '../pages/Register/Register'
 import NotFound from '../pages/NotFound/NotFound'
 import Profile from '../pages/Profile/Profile'
 import Upcoming from '../pages/Upcoming/Upcoming'
+import Help from '../pages/Help/Help'
+import Terms from '../pages/Legal/Terms'
+import Privacy from '../pages/Legal/Privacy'
+import Contact from '../pages/Contact/Contact'
 
 // In-memory data caches to eliminate network fetch delays on tab navigation
 let moviesCache = null
@@ -172,6 +176,22 @@ export const router = createBrowserRouter([
             {
                 path: '/profile',
                 Component: Profile,
+            },
+            {
+                path: '/help',
+                Component: Help,
+            },
+            {
+                path: '/terms',
+                Component: Terms,
+            },
+            {
+                path: '/privacy',
+                Component: Privacy,
+            },
+            {
+                path: '/contact',
+                Component: Contact,
             },
             {
                 path: '/login',
