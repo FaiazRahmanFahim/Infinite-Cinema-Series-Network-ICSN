@@ -18,6 +18,7 @@ import Help from '../pages/Help/Help'
 import Terms from '../pages/Legal/Terms'
 import Privacy from '../pages/Legal/Privacy'
 import Contact from '../pages/Contact/Contact'
+import MoodMatcher from '../pages/MoodMatcher/MoodMatcher'
 
 // In-memory data caches to eliminate network fetch delays on tab navigation
 let moviesCache = null
@@ -168,6 +169,14 @@ export const router = createBrowserRouter([
             {
                 path: '/watchlist',
                 Component: WatchList,
+            },
+            {
+                path: '/matcher',
+                Component: MoodMatcher,
+            },
+            {
+                path: '/mood-matcher',
+                Component: MoodMatcher,
             },
             {
                 path: '/upcoming',

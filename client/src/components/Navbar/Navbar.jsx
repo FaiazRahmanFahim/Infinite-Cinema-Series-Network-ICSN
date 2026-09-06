@@ -16,6 +16,7 @@ import {
     FiUser,
     FiCalendar,
 } from 'react-icons/fi'
+import { HiSparkles } from 'react-icons/hi2'
 import { NavLink, Link, useLocation, useSearchParams, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from '../ui/ThemeToggle'
@@ -116,6 +117,7 @@ const Navbar = () => {
         { path: '/animation', label: 'Animation', icon: FiSmile, color: 'text-warning' },
         { path: '/trending', label: 'Trending', icon: FiTrendingUp, color: 'text-accent' },
         { path: '/upcoming', label: 'Upcoming', icon: FiCalendar, color: 'text-rose-400' },
+        { path: '/matcher', label: 'Matcher', icon: HiSparkles, color: 'text-fuchsia-400', isAi: true },
         { path: '/premium', label: 'Premium', icon: FiAward, color: 'text-amber-400', isVip: true },
         { path: '/browse', label: 'Explore', icon: FiSliders, color: 'text-primary' },
     ]
@@ -213,7 +215,7 @@ const Navbar = () => {
 
                     {/* Desktop Navigation Links (Visible on lg: 1024px+) */}
                     <nav className="hidden items-center gap-0.5 xl:gap-1 lg:flex">
-                        {navLinks.map(({ path, label, icon: Icon, color, isVip }) => (
+                        {navLinks.map(({ path, label, icon: Icon, color, isVip, isAi }) => (
                             <NavLink
                                 key={path}
                                 to={path}
@@ -222,20 +224,29 @@ const Navbar = () => {
                                     `flex items-center gap-1.5 rounded-lg px-2 xl:px-2.5 py-1 text-xs xl:text-[13px] font-semibold transition-colors duration-150 ${isActive
                                         ? isVip
                                             ? 'bg-amber-500/20 text-amber-400 font-bold border border-amber-500/40 shadow-xs'
+                                            : isAi
+                                            ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/40 shadow-xs'
                                             : 'bg-primary/10 text-primary font-bold shadow-xs border border-primary/20'
                                         : isVip
                                             ? 'text-amber-400/90 hover:bg-amber-500/10 hover:text-amber-300'
+                                            : isAi
+                                            ? 'text-fuchsia-400/90 hover:bg-fuchsia-500/10 hover:text-fuchsia-300'
                                             : 'text-base-content/70 hover:bg-base-200/80 hover:text-base-content'
                                     }`
                                 }
                             >
                                 {({ isActive }) => (
                                     <>
-                                        <Icon className={`h-3.5 w-3.5 ${isActive ? color : isVip ? 'text-amber-400' : 'opacity-70'}`} />
+                                        <Icon className={`h-3.5 w-3.5 ${isActive ? color : isVip ? 'text-amber-400' : isAi ? 'text-fuchsia-400' : 'opacity-70'}`} />
                                         <span>{label}</span>
                                         {isVip && (
                                             <span className="ml-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 px-1 py-0.1 text-[7.5px] xl:text-[8px] font-extrabold text-black uppercase tracking-wider">
                                                 VIP
+                                            </span>
+                                        )}
+                                        {isAi && (
+                                            <span className="ml-0.5 rounded bg-gradient-to-r from-fuchsia-500 to-pink-500 px-1 py-0.1 text-[7.5px] xl:text-[8px] font-extrabold text-white uppercase tracking-wider shadow-xs animate-pulse">
+                                                AI
                                             </span>
                                         )}
                                     </>
@@ -617,7 +628,7 @@ const Navbar = () => {
                                             <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-base-content/40">
                                                 Navigation
                                             </p>
-                                            {navLinks.map(({ path, label, icon: Icon, color, isVip }) => (
+                                            {navLinks.map(({ path, label, icon: Icon, color, isVip, isAi }) => (
                                                 <NavLink
                                                     key={path}
                                                     to={path}
@@ -627,9 +638,13 @@ const Navbar = () => {
                                                         `flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${isActive
                                                             ? isVip
                                                                 ? 'bg-amber-500 text-black font-extrabold shadow-md shadow-amber-500/20'
+                                                                : isAi
+                                                                ? 'bg-fuchsia-600 text-white font-extrabold shadow-md shadow-fuchsia-500/20'
                                                                 : 'bg-primary text-primary-content font-bold shadow-md shadow-primary/20'
                                                             : isVip
                                                                 ? 'text-amber-400 hover:bg-amber-500/10'
+                                                                : isAi
+                                                                ? 'text-fuchsia-400 hover:bg-fuchsia-500/10'
                                                                 : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
                                                         }`
                                                     }
@@ -637,13 +652,19 @@ const Navbar = () => {
                                                     {({ isActive }) => (
                                                         <>
                                                             <div className="flex items-center gap-3">
-                                                                <Icon className={`h-4 w-4 ${isActive ? (isVip ? 'text-black' : 'text-primary-content') : color}`} />
+                                                                <Icon className={`h-4 w-4 ${isActive ? (isVip ? 'text-black' : isAi ? 'text-white' : 'text-primary-content') : color}`} />
                                                                 <span>{label}</span>
                                                             </div>
                                                             {isVip && (
                                                                 <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${isActive ? 'bg-black/30 text-black' : 'bg-amber-500/20 text-amber-400'
                                                                     }`}>
                                                                     VIP
+                                                                </span>
+                                                            )}
+                                                            {isAi && (
+                                                                <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${isActive ? 'bg-white/30 text-white' : 'bg-fuchsia-500/20 text-fuchsia-400'
+                                                                    }`}>
+                                                                    AI Vibe
                                                                 </span>
                                                             )}
                                                             {path === '/browse' && (

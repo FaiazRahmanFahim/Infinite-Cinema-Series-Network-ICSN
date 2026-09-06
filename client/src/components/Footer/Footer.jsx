@@ -112,6 +112,12 @@ const Footer = () => {
                         </p>
                         <ul className="space-y-2">
                             <li>
+                                <Link to="/matcher" className="hover:text-primary hover:underline transition-colors flex items-center gap-1.5">
+                                    <span>Mood Matcher</span>
+                                    <span className="rounded bg-fuchsia-500/20 text-fuchsia-400 px-1 py-0.2 text-[8px] font-bold">AI</span>
+                                </Link>
+                            </li>
+                            <li>
                                 <Link to="/premium" className="hover:text-primary hover:underline transition-colors">
                                     VIP 4K Cinema
                                 </Link>
