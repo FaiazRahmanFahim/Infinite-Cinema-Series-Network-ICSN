@@ -62,24 +62,33 @@ const MoodMatcher = () => {
     // Fetch all media for recommendation pool
     useEffect(() => {
         let isMounted = true
-        Promise.all([
-            fetch('/popularMovies.json').then((r) => r.json()),
-            fetch('/popularSeries.json').then((r) => r.json()),
-            fetch('/popularAnimation.json').then((r) => r.json()),
-            fetch('/trendingContent.json').then((r) => r.json()).catch(() => []),
-        ])
-            .then(([movies, series, animation, trending]) => {
+        fetch('/AllData.json')
+            .then((r) => r.json())
+            .then((data) => {
                 if (!isMounted) return
-                const map = new Map()
-                for (const item of [...movies, ...series, ...animation, ...trending]) {
-                    if (!map.has(item.id)) map.set(item.id, item)
-                }
-                setAllMedia(Array.from(map.values()))
+                setAllMedia(data)
                 setLoading(false)
             })
-            .catch((err) => {
-                console.error(err)
-                if (isMounted) setLoading(false)
+            .catch(() => {
+                Promise.all([
+                    fetch('/popularMovies.json').then((r) => r.json()),
+                    fetch('/popularSeries.json').then((r) => r.json()),
+                    fetch('/popularAnimation.json').then((r) => r.json()),
+                    fetch('/trendingContent.json').then((r) => r.json()).catch(() => []),
+                ])
+                    .then(([movies, series, animation, trending]) => {
+                        if (!isMounted) return
+                        const map = new Map()
+                        for (const item of [...movies, ...series, ...animation, ...trending]) {
+                            if (!map.has(item.id)) map.set(item.id, item)
+                        }
+                        setAllMedia(Array.from(map.values()))
+                        setLoading(false)
+                    })
+                    .catch((err) => {
+                        console.error(err)
+                        if (isMounted) setLoading(false)
+                    })
             })
 
         return () => {

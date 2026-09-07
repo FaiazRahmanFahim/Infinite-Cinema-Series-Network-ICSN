@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiClock, FiStar, FiTrash2, FiX, FiArrowRight, FiPlay } from 'react-icons/fi'
+import { FiClock, FiStar, FiTrash2, FiX } from 'react-icons/fi'
 import { getRecentViews, removeRecentView, clearRecentViews } from '../../utils/recentViews'
 import { sectionVariants, containerVariants, itemVariants } from '../../animations/motionVariants'
 
@@ -99,81 +99,81 @@ const RecentlyViewedRibbon = ({ maxDisplay = 6, showClear = true }) => {
                                     variants={itemVariants}
                                     layout
                                     exit={{ opacity: 0, scale: 0.8 }}
-                                    className="group relative flex flex-col overflow-hidden rounded-2xl border border-base-300/70 bg-base-100/80 backdrop-blur-md shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-secondary/50 hover:shadow-lg hover:shadow-secondary/10"
+                                    className="relative"
                                 >
-                                    {/* Poster */}
-                                    <div className="relative aspect-[2/3] w-full overflow-hidden bg-base-300">
-                                        <img
-                                            src={item.poster}
-                                            alt={item.title}
-                                            loading="lazy"
-                                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-106"
-                                            onError={(e) => {
-                                                e.currentTarget.src =
-                                                    'https://placehold.co/600x900/111827/ffffff?text=ICSN'
-                                            }}
-                                        />
+                                    <Link
+                                        to={`/details/${itemId}`}
+                                        className="group relative flex flex-col overflow-hidden rounded-2xl border border-base-300/70 bg-base-100/90 backdrop-blur-md shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/60 hover:shadow-xl hover:shadow-primary/10 block cursor-pointer"
+                                        title={`View details for ${item.title}`}
+                                    >
+                                        {/* Poster */}
+                                        <div className="relative aspect-[2/3] w-full overflow-hidden bg-base-300">
+                                            <img
+                                                src={item.poster}
+                                                alt={item.title}
+                                                loading="lazy"
+                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-106"
+                                                onError={(e) => {
+                                                    e.currentTarget.src =
+                                                        'https://placehold.co/600x900/111827/ffffff?text=ICSN'
+                                                }}
+                                            />
 
-                                        {/* Overlay gradient */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                                            {/* Overlay gradient */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
 
-                                        {/* Top Type Badge */}
-                                        <div className="absolute top-2 left-2 flex items-center gap-1">
-                                            <span className="rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white backdrop-blur-xs">
-                                                {item.type || 'Media'}
-                                            </span>
-                                            {item.isPremium && (
-                                                <span className="rounded bg-amber-500/90 px-1.5 py-0.5 text-[9px] font-black text-black">
-                                                    VIP
+                                            {/* Top Type Badge */}
+                                            <div className="absolute top-2 left-2 flex items-center gap-1">
+                                                <span className="rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white backdrop-blur-xs">
+                                                    {item.type || 'Media'}
                                                 </span>
-                                            )}
+                                                {item.isPremium && (
+                                                    <span className="rounded bg-amber-500/90 px-1.5 py-0.5 text-[9px] font-black text-black shadow-xs">
+                                                        VIP
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Quick Remove Button */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    e.stopPropagation()
+                                                    removeRecentView(itemId)
+                                                }}
+                                                className="absolute top-2 right-2 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white/70 opacity-0 group-hover:opacity-100 hover:bg-error hover:text-white transition-all backdrop-blur-xs shadow-sm z-10"
+                                                title="Remove from recently viewed"
+                                                aria-label="Remove"
+                                            >
+                                                <FiX className="h-3 w-3" />
+                                            </button>
+
+                                            {/* Bottom Rating & Year */}
+                                            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-[10px] font-bold">
+                                                <span>{item.year}</span>
+                                                {item.rating && (
+                                                    <span className="flex items-center gap-1 text-amber-400">
+                                                        <FiStar className="h-2.5 w-2.5 fill-amber-400" />
+                                                        {Number(item.rating).toFixed(1)}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
 
-                                        {/* Quick Remove Button */}
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.preventDefault()
-                                                e.stopPropagation()
-                                                removeRecentView(itemId)
-                                            }}
-                                            className="absolute top-2 right-2 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white/70 opacity-0 group-hover:opacity-100 hover:bg-error hover:text-white transition-all backdrop-blur-xs shadow-sm"
-                                            title="Remove from recently viewed"
-                                            aria-label="Remove"
-                                        >
-                                            <FiX className="h-3 w-3" />
-                                        </button>
-
-                                        {/* Bottom Rating & Year */}
-                                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-[10px] font-bold">
-                                            <span>{item.year}</span>
-                                            {item.rating && (
-                                                <span className="flex items-center gap-1 text-amber-400">
-                                                    <FiStar className="h-2.5 w-2.5 fill-amber-400" />
-                                                    {Number(item.rating).toFixed(1)}
-                                                </span>
-                                            )}
+                                        {/* Title & Metadata */}
+                                        <div className="p-2.5 space-y-0.5">
+                                            <p
+                                                className="line-clamp-1 font-display text-xs font-bold text-base-content group-hover:text-primary transition-colors"
+                                                title={item.title}
+                                            >
+                                                {item.title}
+                                            </p>
+                                            <p className="text-[10px] text-base-content/50 truncate font-medium">
+                                                {item.genres ? item.genres.slice(0, 2).join(' • ') : item.type || 'Movie'}
+                                            </p>
                                         </div>
-                                    </div>
-
-                                    {/* Title & Link */}
-                                    <div className="p-2.5 flex-1 flex flex-col justify-between space-y-1">
-                                        <Link
-                                            to={`/details/${itemId}`}
-                                            className="line-clamp-1 font-display text-xs font-bold text-base-content hover:text-primary transition-colors"
-                                            title={item.title}
-                                        >
-                                            {item.title}
-                                        </Link>
-
-                                        <Link
-                                            to={`/details/${itemId}`}
-                                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-secondary hover:text-secondary/80 transition-colors pt-0.5"
-                                        >
-                                            <span>Resume</span>
-                                            <FiArrowRight className="h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5" />
-                                        </Link>
-                                    </div>
+                                    </Link>
                                 </motion.div>
                             )
                         })}

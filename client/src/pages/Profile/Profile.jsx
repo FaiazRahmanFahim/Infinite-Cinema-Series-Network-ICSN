@@ -26,10 +26,14 @@ import {
     FiX,
     FiCheck,
     FiTrendingUp,
+    FiMessageSquare,
+    FiAlertTriangle,
+    FiTrash2,
 } from 'react-icons/fi'
 import { useAuth } from '../../context/AuthProvider'
 import { useWatchlist } from '../../context/WatchlistContext'
 import { getRecentViews } from '../../utils/recentViews'
+import { getUserReviews, deleteReview } from '../../utils/reviewsManager'
 import GenreIcon from '../../components/ui/GenreIcon'
 import {
     pageVariants,
@@ -84,11 +88,18 @@ const Profile = () => {
     const [vipModalOpen, setVipModalOpen] = useState(false)
     const [copiedShare, setCopiedShare] = useState(false)
     const [recentViews, setRecentViews] = useState([])
+    const [myReviews, setMyReviews] = useState([])
 
-    // Sync recent views
+    // Sync recent views and user reviews
     useEffect(() => {
         setRecentViews(getRecentViews())
-    }, [])
+        setMyReviews(getUserReviews(profileData.displayName || user?.name))
+    }, [profileData.displayName, user?.name])
+
+    const handleDeleteMyReview = (reviewId) => {
+        deleteReview(reviewId)
+        setMyReviews(getUserReviews(profileData.displayName || user?.name))
+    }
 
     // Update display name if user logs in with new info
     useEffect(() => {
@@ -371,6 +382,7 @@ const Profile = () => {
                             { id: 'watching', label: `In Progress (${analytics.watching})`, icon: FiPlay },
                             { id: 'completed', label: `Completed (${analytics.completed})`, icon: FiCheckCircle },
                             { id: 'recent', label: `Recently Viewed (${recentViews.length})`, icon: FiClock },
+                            { id: 'reviews', label: `My Reviews (${myReviews.length})`, icon: FiMessageSquare },
                             { id: 'settings', label: 'Playback & Preferences', icon: FiSliders },
                         ].map(({ id, label, icon: Icon }) => (
                             <button
@@ -767,7 +779,123 @@ const Profile = () => {
                     </motion.div>
                 )}
 
-                {/* TAB 5: SETTINGS & PLAYBACK PREFERENCES */}
+                {/* TAB 5: MY COMMUNITY REVIEWS */}
+                {activeTab === 'reviews' && (
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="show"
+                        className="space-y-6"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="font-display text-xl font-bold text-base-content">
+                                    My Published Reviews ({myReviews.length})
+                                </h3>
+                                <p className="text-xs text-base-content/60">
+                                    Critiques and ratings you have shared with the ICSN community.
+                                </p>
+                            </div>
+                        </div>
+
+                        {myReviews.length === 0 ? (
+                            <div className="rounded-3xl border border-dashed border-base-300 p-12 text-center space-y-3">
+                                <span className="grid h-12 w-12 mx-auto place-items-center rounded-2xl bg-primary/10 text-primary">
+                                    <FiMessageSquare className="h-6 w-6" />
+                                </span>
+                                <h4 className="font-display text-base font-bold text-base-content">
+                                    No reviews published yet
+                                </h4>
+                                <p className="text-xs text-base-content/60 max-w-sm mx-auto">
+                                    Visit any movie, series, or anime details page to rate and post your review.
+                                </p>
+                                <Link to="/browse" className="btn btn-primary btn-sm rounded-xl font-bold">
+                                    Explore Catalog to Review
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {myReviews.map((rev) => (
+                                    <div
+                                        key={rev.id}
+                                        className="rounded-3xl border border-base-300/80 bg-base-200/40 p-5 sm:p-6 backdrop-blur-md shadow-xs space-y-3"
+                                    >
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-base-300/60 pb-3">
+                                            <div className="flex items-center gap-3">
+                                                {rev.mediaPoster && (
+                                                    <img
+                                                        src={rev.mediaPoster}
+                                                        alt={rev.mediaTitle || 'Poster'}
+                                                        className="h-12 w-9 rounded-lg object-cover bg-base-300 shrink-0"
+                                                    />
+                                                )}
+                                                <div>
+                                                    <Link
+                                                        to={`/details/${rev.mediaId}`}
+                                                        className="font-display text-sm font-bold text-base-content hover:text-primary transition-colors"
+                                                    >
+                                                        {rev.mediaTitle || 'Reviewed Title'}
+                                                    </Link>
+                                                    <p className="text-[10px] text-base-content/50">
+                                                        Posted on {new Date(rev.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                                                <span className="flex items-center gap-1 rounded-xl bg-black/80 border border-amber-400/40 px-3 py-1 font-bold text-amber-400 text-xs">
+                                                    <FiStar className="h-3.5 w-3.5 fill-amber-400" />
+                                                    <span>{rev.rating}</span>
+                                                    <span className="text-[10px] text-gray-400 font-normal">/10</span>
+                                                </span>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteMyReview(rev.id)}
+                                                    className="btn btn-ghost btn-xs text-error/80 hover:bg-error/10 hover:text-error gap-1 font-semibold"
+                                                    title="Delete this review"
+                                                >
+                                                    <FiTrash2 className="h-3 w-3" />
+                                                    <span>Delete</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <h4 className="font-display text-sm font-bold text-base-content">
+                                                {rev.title}
+                                            </h4>
+                                            {rev.hasSpoiler && (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-md">
+                                                    <FiAlertTriangle className="h-3 w-3" />
+                                                    <span>Contains Spoilers</span>
+                                                </span>
+                                            )}
+                                            <p className="text-xs text-base-content/80 leading-relaxed">
+                                                {rev.body}
+                                            </p>
+                                        </div>
+
+                                        {rev.tags && rev.tags.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5 pt-1">
+                                                {rev.tags.map((tag) => (
+                                                    <span
+                                                        key={tag}
+                                                        className="rounded-md bg-base-300/60 px-2 py-0.5 text-[10px] font-semibold text-base-content/75"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+
+                {/* TAB 6: SETTINGS & PLAYBACK PREFERENCES */}
                 {activeTab === 'settings' && (
                     <motion.div
                         variants={containerVariants}

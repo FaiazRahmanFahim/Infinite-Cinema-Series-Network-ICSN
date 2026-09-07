@@ -20,10 +20,40 @@ export function filterAndSortMedia(items = [], options = {}) {
         genre = '',
         genres = [],
         search = '',
+        director = '',
+        cast = '',
+        person = '',
         sort = 'popularity', // default to popularity
     } = options
 
     let result = [...items]
+
+    // 1. Filter by Person / Director / Cast
+    if (person && person.trim()) {
+        const p = person.toLowerCase().trim()
+        result = result.filter(
+            (item) =>
+                item.director?.toLowerCase().includes(p) ||
+                item.creator?.toLowerCase().includes(p) ||
+                item.cast?.some((c) => c.toLowerCase().includes(p))
+        )
+    }
+
+    if (director && director.trim()) {
+        const d = director.toLowerCase().trim()
+        result = result.filter(
+            (item) =>
+                item.director?.toLowerCase().includes(d) ||
+                item.creator?.toLowerCase().includes(d)
+        )
+    }
+
+    if (cast && cast.trim()) {
+        const cTarget = cast.toLowerCase().trim()
+        result = result.filter(
+            (item) => item.cast?.some((c) => c.toLowerCase().includes(cTarget))
+        )
+    }
 
     // 1. Filter by Type
     if (type && type.toLowerCase() !== 'all') {

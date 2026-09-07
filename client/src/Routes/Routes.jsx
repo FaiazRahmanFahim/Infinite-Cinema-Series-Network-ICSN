@@ -19,6 +19,7 @@ import Terms from '../pages/Legal/Terms'
 import Privacy from '../pages/Legal/Privacy'
 import Contact from '../pages/Contact/Contact'
 import MoodMatcher from '../pages/MoodMatcher/MoodMatcher'
+import Filmography from '../pages/Filmography/Filmography'
 
 // In-memory data caches to eliminate network fetch delays on tab navigation
 let moviesCache = null
@@ -86,20 +87,25 @@ const getPremium = async () => {
 
 const loadAllMedia = async () => {
     if (allMediaCache) return allMediaCache
-    const [movies, series, animation] = await Promise.all([
-        getMovies(),
-        getSeries(),
-        getAnimation(),
-    ])
-    // Deduplicate by ID
-    const map = new Map()
-    for (const item of [...movies, ...series, ...animation]) {
-        if (!map.has(item.id)) {
-            map.set(item.id, item)
+    try {
+        const data = await fetch('/AllData.json').then((res) => res.json())
+        allMediaCache = data
+        return allMediaCache
+    } catch {
+        const [movies, series, animation] = await Promise.all([
+            getMovies(),
+            getSeries(),
+            getAnimation(),
+        ])
+        const map = new Map()
+        for (const item of [...movies, ...series, ...animation]) {
+            if (!map.has(item.id)) {
+                map.set(item.id, item)
+            }
         }
+        allMediaCache = Array.from(map.values())
+        return allMediaCache
     }
-    allMediaCache = Array.from(map.values())
-    return allMediaCache
 }
 
 export const router = createBrowserRouter([
@@ -177,6 +183,22 @@ export const router = createBrowserRouter([
             {
                 path: '/mood-matcher',
                 Component: MoodMatcher,
+            },
+            {
+                path: '/person/:name',
+                Component: Filmography,
+            },
+            {
+                path: '/director/:name',
+                Component: Filmography,
+            },
+            {
+                path: '/cast/:name',
+                Component: Filmography,
+            },
+            {
+                path: '/actor/:name',
+                Component: Filmography,
             },
             {
                 path: '/upcoming',

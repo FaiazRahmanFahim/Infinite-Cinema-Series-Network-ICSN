@@ -20,6 +20,8 @@ import {
 import SectionHeader from '../../ui/SectionHeader'
 import MediaCard from '../../ui/MediaCard'
 import GenreIcon from '../../ui/GenreIcon'
+import PersonAvatar from '../../ui/PersonAvatar'
+import CommunityReviews from '../reviews/CommunityReviews'
 import {
     pageVariants,
     sectionVariants,
@@ -48,16 +50,21 @@ const DetailsPage = () => {
 
         async function fetchDetails() {
             try {
-                const [moviesRes, seriesRes, animRes, trendRes] = await Promise.all([
-                    fetch('/popularMovies.json').then((r) => r.json()),
-                    fetch('/popularSeries.json').then((r) => r.json()),
-                    fetch('/popularAnimation.json').then((r) => r.json()),
-                    fetch('/trendingContent.json').then((r) => r.json()).catch(() => []),
-                ])
+                let combined = []
+                try {
+                    combined = await fetch('/AllData.json').then((r) => r.json())
+                } catch {
+                    const [moviesRes, seriesRes, animRes, trendRes] = await Promise.all([
+                        fetch('/popularMovies.json').then((r) => r.json()),
+                        fetch('/popularSeries.json').then((r) => r.json()),
+                        fetch('/popularAnimation.json').then((r) => r.json()),
+                        fetch('/trendingContent.json').then((r) => r.json()).catch(() => []),
+                    ])
+                    combined = [...moviesRes, ...seriesRes, ...animRes, ...trendRes]
+                }
 
                 if (!isMounted) return
 
-                const combined = [...moviesRes, ...seriesRes, ...animRes, ...trendRes]
                 setAllMedia(combined)
 
                 // Match item by id or normalized title slug
@@ -173,24 +180,24 @@ const DetailsPage = () => {
             {/* Hero Backdrop Banner */}
             <div className="relative min-h-[520px] w-full overflow-hidden bg-black lg:min-h-[580px]">
                 <motion.img
-                    initial={{ scale: 1.1, opacity: 0 }}
-                    animate={{ scale: 1.05, opacity: 0.35 }}
+                    initial={{ scale: 1.08, opacity: 0 }}
+                    animate={{ scale: 1.02, opacity: 0.8 }}
                     transition={{ duration: 0.8, ease: 'easeOut' }}
                     src={item.backdrop || item.poster}
                     alt={`${item.title} backdrop`}
-                    className="h-full w-full object-cover filter blur-[1px]"
+                    className="h-full w-full object-cover"
                 />
 
-                {/* Dark Gradient Overlays for Cinematic Atmosphere */}
-                <div className="absolute inset-0 bg-gradient-to-t from-base-100 via-base-100/70 to-black/60" />
-                <div className="absolute inset-0 bg-gradient-to-r from-base-100/90 via-base-100/40 to-transparent" />
+                {/* Cinematic Contrast Overlays - Subtle Bottom Blend & Scrim */}
+                <div className="absolute inset-0 bg-gradient-to-t from-base-100 via-base-100/40 to-black/30" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent" />
 
                 {/* Back Button */}
                 <div className="absolute top-6 left-4 sm:left-8 z-20">
                     <button
                         type="button"
                         onClick={() => navigate(-1)}
-                        className="group inline-flex items-center gap-2 rounded-full border border-base-300/60 bg-base-100/80 px-4 py-2 text-xs font-bold text-base-content backdrop-blur-xl transition hover:bg-primary hover:text-primary-content hover:border-primary shadow-sm"
+                        className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-4 py-2 text-xs font-bold text-white backdrop-blur-xl transition hover:bg-primary hover:text-primary-content hover:border-primary shadow-lg"
                     >
                         <FiArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                         <span>Back</span>
@@ -405,21 +412,33 @@ const DetailsPage = () => {
                                 transition={{ duration: 0.45 }}
                                 className="rounded-3xl border border-base-300/70 bg-base-200/40 p-6 sm:p-8 backdrop-blur-sm shadow-xs space-y-4"
                             >
-                                <h3 className="font-display text-lg font-bold tracking-tight text-base-content flex items-center gap-2">
-                                    <FiUser className="h-5 w-5 text-secondary" />
-                                    <span>Top Cast</span>
-                                </h3>
-                                <div className="flex flex-wrap gap-2.5">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-display text-lg font-bold tracking-tight text-base-content flex items-center gap-2">
+                                        <FiUser className="h-5 w-5 text-secondary" />
+                                        <span>Top Cast & Characters</span>
+                                    </h3>
+                                    <span className="text-xs font-semibold text-base-content/50">
+                                        Click to view filmography
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                     {item.cast.map((actor) => (
-                                        <div
+                                        <Link
                                             key={actor}
-                                            className="flex items-center gap-2 rounded-xl border border-base-300 bg-base-100 px-3.5 py-2 text-xs font-semibold text-base-content shadow-xs"
+                                            to={`/person/${encodeURIComponent(actor)}`}
+                                            className="group flex items-center gap-3 rounded-2xl border border-base-300/80 bg-base-100/90 p-2.5 shadow-xs hover:border-primary/50 hover:bg-base-200 hover:shadow-md hover:shadow-primary/5 transition-all"
+                                            title={`View ${actor}'s filmography`}
                                         >
-                                            <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-primary font-bold text-[11px]">
-                                                {actor.charAt(0)}
-                                            </span>
-                                            <span>{actor}</span>
-                                        </div>
+                                            <PersonAvatar name={actor} size="md" className="border-primary/20 group-hover:border-primary transition-colors" />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-xs font-bold text-base-content group-hover:text-primary transition-colors">
+                                                    {actor}
+                                                </p>
+                                                <p className="text-[10px] text-base-content/50 font-medium group-hover:text-base-content/70">
+                                                    Cast Member &rarr;
+                                                </p>
+                                            </div>
+                                        </Link>
                                     ))}
                                 </div>
                             </motion.div>
@@ -435,16 +454,30 @@ const DetailsPage = () => {
 
                             <div className="space-y-3 text-xs">
                                 {item.director && (
-                                    <div className="flex justify-between py-1 border-b border-base-300/30">
+                                    <div className="flex justify-between items-center py-1.5 border-b border-base-300/30">
                                         <span className="font-medium text-base-content/60">Director</span>
-                                        <span className="font-bold text-base-content">{item.director}</span>
+                                        <Link
+                                            to={`/person/${encodeURIComponent(item.director)}`}
+                                            className="inline-flex items-center gap-2 font-bold text-base-content hover:text-primary hover:underline transition-colors"
+                                            title={`View ${item.director}'s filmography`}
+                                        >
+                                            <PersonAvatar name={item.director} size="xs" />
+                                            <span>{item.director}</span>
+                                        </Link>
                                     </div>
                                 )}
 
                                 {item.creator && (
-                                    <div className="flex justify-between py-1 border-b border-base-300/30">
+                                    <div className="flex justify-between items-center py-1.5 border-b border-base-300/30">
                                         <span className="font-medium text-base-content/60">Creator</span>
-                                        <span className="font-bold text-base-content">{item.creator}</span>
+                                        <Link
+                                            to={`/person/${encodeURIComponent(item.creator)}`}
+                                            className="inline-flex items-center gap-2 font-bold text-base-content hover:text-primary hover:underline transition-colors"
+                                            title={`View ${item.creator}'s filmography`}
+                                        >
+                                            <PersonAvatar name={item.creator} size="xs" />
+                                            <span>{item.creator}</span>
+                                        </Link>
                                     </div>
                                 )}
 
@@ -501,6 +534,9 @@ const DetailsPage = () => {
                         </div>
                     </div>
                 </motion.div>
+
+                {/* Interactive Community Reviews & Ratings Section */}
+                <CommunityReviews mediaItem={item} />
 
                 {/* Related / Recommended Titles Section */}
                 {relatedMedia.length > 0 && (

@@ -6,6 +6,7 @@ import SectionHeader from '../../ui/SectionHeader'
 import MediaCard from '../../ui/MediaCard'
 import EmptyState from '../../ui/EmptyState'
 import MediaFilterBar from '../../ui/MediaFilterBar'
+import PersonAvatar from '../../ui/PersonAvatar'
 import { filterAndSortMedia } from '../../../utils/filterMedia'
 import {
     pageVariants,
@@ -54,6 +55,9 @@ const BrowseContent = () => {
             : genre
             ? [genre]
             : []
+        const person = searchParams.get('person') || ''
+        const director = searchParams.get('director') || ''
+        const cast = searchParams.get('cast') || ''
 
         return {
             type,
@@ -64,6 +68,9 @@ const BrowseContent = () => {
             search,
             genre,
             genres,
+            person,
+            director,
+            cast,
         }
     }, [searchParams])
 
@@ -81,6 +88,9 @@ const BrowseContent = () => {
         if (newFilters.year) params.set('year', newFilters.year)
         if (newFilters.sort && newFilters.sort !== 'popularity') params.set('sort', newFilters.sort)
         if (newFilters.search) params.set('search', newFilters.search)
+        if (newFilters.person) params.set('person', newFilters.person)
+        if (newFilters.director) params.set('director', newFilters.director)
+        if (newFilters.cast) params.set('cast', newFilters.cast)
 
         if (Array.isArray(newFilters.genres) && newFilters.genres.length > 0) {
             params.set('genres', newFilters.genres.join(','))
@@ -95,6 +105,9 @@ const BrowseContent = () => {
         setSearchParams({})
     }
 
+    const activePersonFilter = filters.person || filters.director || filters.cast
+    const activePersonRole = filters.director ? 'Director' : filters.cast ? 'Cast Member' : 'Person'
+
     return (
         <motion.div
             variants={pageVariants}
@@ -108,6 +121,44 @@ const BrowseContent = () => {
                 description="Filter across all movies, series, and animation by type, country, language, release year, genres, and sort by latest or IMDb rating."
                 badge="Explore Everything"
             />
+
+            {/* Active Person / Filmography Filter Banner */}
+            {activePersonFilter && (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/40 bg-primary/10 p-4 backdrop-blur-md">
+                    <div className="flex items-center gap-3">
+                        <PersonAvatar name={activePersonFilter} size="md" className="border-primary/40 ring-2 ring-primary/20" />
+                        <div>
+                            <p className="text-xs font-semibold text-base-content/70">
+                                Filtering by {activePersonRole}:
+                            </p>
+                            <h3 className="font-display text-sm sm:text-base font-bold text-base-content">
+                                {activePersonFilter}
+                            </h3>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <a
+                            href={`/person/${encodeURIComponent(activePersonFilter)}`}
+                            className="btn btn-xs btn-primary font-bold"
+                        >
+                            View Full Filmography &rarr;
+                        </a>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const params = new URLSearchParams(searchParams)
+                                params.delete('person')
+                                params.delete('director')
+                                params.delete('cast')
+                                setSearchParams(params)
+                            }}
+                            className="btn btn-xs btn-ghost text-base-content/70 hover:text-base-content"
+                        >
+                            Clear Filter
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Comprehensive Multi-Criteria Filter Bar */}
             <motion.div

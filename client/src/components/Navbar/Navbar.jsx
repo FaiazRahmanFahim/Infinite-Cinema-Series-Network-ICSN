@@ -20,6 +20,7 @@ import { HiSparkles } from 'react-icons/hi2'
 import { NavLink, Link, useLocation, useSearchParams, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from '../ui/ThemeToggle'
+import PersonAvatar from '../ui/PersonAvatar'
 import { SMOOTH_EASE, slideDownVariants } from '../../animations/motionVariants'
 import { useWatchlist } from '../../context/WatchlistContext'
 import { useAuth } from '../../context/AuthProvider'
@@ -49,20 +50,24 @@ const Navbar = () => {
 
     // Fetch media data for quick search
     useEffect(() => {
-        Promise.all([
-            fetch('/popularMovies.json').then((r) => r.json()),
-            fetch('/popularSeries.json').then((r) => r.json()),
-            fetch('/popularAnimation.json').then((r) => r.json()),
-        ])
-            .then(([movies, series, animations]) => {
-                // Deduplicate items
-                const map = new Map()
-                for (const item of [...movies, ...series, ...animations]) {
-                    if (!map.has(item.id)) map.set(item.id, item)
-                }
-                setAllMedia(Array.from(map.values()))
+        fetch('/AllData.json')
+            .then((r) => r.json())
+            .then((data) => setAllMedia(data))
+            .catch(() => {
+                Promise.all([
+                    fetch('/popularMovies.json').then((r) => r.json()),
+                    fetch('/popularSeries.json').then((r) => r.json()),
+                    fetch('/popularAnimation.json').then((r) => r.json()),
+                ])
+                    .then(([movies, series, animations]) => {
+                        const map = new Map()
+                        for (const item of [...movies, ...series, ...animations]) {
+                            if (!map.has(item.id)) map.set(item.id, item)
+                        }
+                        setAllMedia(Array.from(map.values()))
+                    })
+                    .catch(() => setAllMedia([]))
             })
-            .catch(() => setAllMedia([]))
     }, [])
 
     // Automatically close dropdowns & sidebar on route change
@@ -184,6 +189,44 @@ const Navbar = () => {
         }).slice(0, 5)
         : []
 
+    // Quick person (director & cast) preview matches
+    const personSuggestions = searchValue.trim().length > 1
+        ? (() => {
+            const q = searchValue.toLowerCase().trim()
+            const map = new Map()
+            for (const item of allMedia) {
+                if (item.director && item.director.toLowerCase().includes(q)) {
+                    const rec = map.get(item.director) || { name: item.director, roles: new Set(), titles: 0 }
+                    rec.roles.add('Director')
+                    rec.titles += 1
+                    map.set(item.director, rec)
+                }
+                if (item.creator && item.creator.toLowerCase().includes(q)) {
+                    const rec = map.get(item.creator) || { name: item.creator, roles: new Set(), titles: 0 }
+                    rec.roles.add('Creator')
+                    rec.titles += 1
+                    map.set(item.creator, rec)
+                }
+                if (Array.isArray(item.cast)) {
+                    for (const actor of item.cast) {
+                        if (actor.toLowerCase().includes(q)) {
+                            const rec = map.get(actor) || { name: actor, roles: new Set(), titles: 0 }
+                            rec.roles.add('Cast')
+                            rec.titles += 1
+                            map.set(actor, rec)
+                        }
+                    }
+                }
+            }
+            return Array.from(map.values())
+                .map((p) => ({
+                    ...p,
+                    rolesList: Array.from(p.roles).join(' / '),
+                }))
+                .slice(0, 3)
+        })()
+        : []
+
     return (
         <>
             <header className="sticky top-0 z-40 border-b border-base-300/60 bg-base-100/90 backdrop-blur-xl transition-all duration-300">
@@ -300,9 +343,46 @@ const Navbar = () => {
                                         <span>{searchSuggestions.length} found</span>
                                     </div>
 
-                                    {searchSuggestions.length === 0 ? (
+                                    {/* Cast & Director Matches */}
+                                    {personSuggestions.length > 0 && (
+                                        <div className="space-y-1 pb-1.5 border-b border-base-300/40">
+                                            <div className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-secondary flex items-center gap-1.5">
+                                                <FiUser className="h-3 w-3" />
+                                                <span>Cast & Directors ({personSuggestions.length})</span>
+                                            </div>
+                                            {personSuggestions.map((person) => (
+                                                <Link
+                                                    key={person.name}
+                                                    to={`/person/${encodeURIComponent(person.name)}`}
+                                                    onClick={() => setSearchFocused(false)}
+                                                    className="flex items-center justify-between rounded-xl p-2 hover:bg-base-200/90 transition-all group"
+                                                >
+                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                        <PersonAvatar
+                                                            name={person.name}
+                                                            size="sm"
+                                                            className="border-secondary/30 group-hover:border-primary transition-colors"
+                                                        />
+                                                        <div className="min-w-0">
+                                                            <p className="truncate text-xs font-bold text-base-content group-hover:text-primary transition-colors">
+                                                                {person.name}
+                                                            </p>
+                                                            <span className="text-[10px] text-base-content/60">
+                                                                {person.rolesList}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <span className="rounded-md bg-base-200 px-2 py-0.5 text-[10px] font-semibold text-base-content/70 group-hover:bg-primary/20 group-hover:text-primary transition-colors shrink-0">
+                                                        {person.titles} {person.titles === 1 ? 'title' : 'titles'} &rarr;
+                                                    </span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {searchSuggestions.length === 0 && personSuggestions.length === 0 ? (
                                         <div className="px-3 py-4 text-center text-xs text-base-content/60">
-                                            No titles found for &ldquo;{searchValue}&rdquo;
+                                            No titles or people found for &ldquo;{searchValue}&rdquo;
                                         </div>
                                     ) : (
                                         searchSuggestions.map((item) => (
@@ -477,7 +557,29 @@ const Navbar = () => {
 
                         {/* Mobile Live Suggestions Dropdown */}
                         {searchValue.trim().length > 0 && (
-                            <div className="mt-2 rounded-xl border border-base-300/60 bg-base-200/70 p-2 space-y-1">
+                            <div className="mt-2 rounded-xl border border-base-300/60 bg-base-200/70 p-2 space-y-1 max-h-72 overflow-y-auto">
+                                {personSuggestions.length > 0 && (
+                                    <div className="space-y-1 pb-1 border-b border-base-300/50">
+                                        <p className="text-[10px] font-bold text-secondary uppercase px-1">Cast & Directors</p>
+                                        {personSuggestions.map((person) => (
+                                            <Link
+                                                key={person.name}
+                                                to={`/person/${encodeURIComponent(person.name)}`}
+                                                onClick={() => setMobileSearchOpen(false)}
+                                                className="flex items-center justify-between rounded-lg p-1.5 hover:bg-base-100 transition-colors"
+                                            >
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <PersonAvatar name={person.name} size="xs" />
+                                                    <div className="min-w-0">
+                                                        <p className="font-bold truncate text-xs text-base-content">{person.name}</p>
+                                                        <p className="text-[9px] text-base-content/60">{person.rolesList}</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[10px] text-primary font-bold">{person.titles} titles &rarr;</span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
                                 {searchSuggestions.slice(0, 4).map((item) => (
                                     <Link
                                         key={item.id}
@@ -593,7 +695,29 @@ const Navbar = () => {
 
                                             {/* Sidebar Live Search Suggestions */}
                                             {searchValue.trim().length > 0 && (
-                                                <div className="mt-2 rounded-xl border border-base-300/60 bg-base-200/60 p-2 space-y-1">
+                                                <div className="mt-2 rounded-xl border border-base-300/60 bg-base-200/60 p-2 space-y-1 max-h-64 overflow-y-auto">
+                                                    {personSuggestions.length > 0 && (
+                                                        <div className="space-y-1 pb-1 border-b border-base-300/50">
+                                                            <p className="text-[10px] font-bold text-secondary uppercase px-1">Cast & Directors</p>
+                                                            {personSuggestions.map((person) => (
+                                                                <Link
+                                                                    key={person.name}
+                                                                    to={`/person/${encodeURIComponent(person.name)}`}
+                                                                    onClick={() => setSidebarOpen(false)}
+                                                                    className="flex items-center justify-between rounded-lg p-1.5 hover:bg-base-100 transition-colors"
+                                                                >
+                                                                    <div className="flex items-center gap-2 min-w-0">
+                                                                        <PersonAvatar name={person.name} size="xs" />
+                                                                        <div className="min-w-0">
+                                                                            <p className="font-bold truncate text-xs text-base-content">{person.name}</p>
+                                                                            <p className="text-[9px] text-base-content/60">{person.rolesList}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span className="text-[10px] text-primary font-bold">{person.titles} &rarr;</span>
+                                                                </Link>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                     {searchSuggestions.slice(0, 3).map((item) => (
                                                         <Link
                                                             key={item.id}
