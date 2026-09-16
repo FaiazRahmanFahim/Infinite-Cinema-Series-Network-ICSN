@@ -256,8 +256,8 @@ const Navbar = () => {
                         </div>
                     </Link>
 
-                    {/* Desktop Navigation Links (Visible on lg: 1024px+) */}
-                    <nav className="hidden items-center gap-0.5 xl:gap-1 lg:flex">
+                    {/* Desktop Navigation Links (Visible on Large Desktop: xl: 1280px+) */}
+                    <nav className="hidden items-center gap-0.5 xl:gap-1 xl:flex">
                         {navLinks.map(({ path, label, icon: Icon, color, isVip, isAi }) => (
                             <NavLink
                                 key={path}
@@ -509,11 +509,11 @@ const Navbar = () => {
                         </Link>
                     )}
 
-                    {/* Hamburger Button (Visible on Mobile & Tablet: lg:hidden) */}
+                    {/* Hamburger Button (Visible on Mobile & Tablet: xl:hidden) */}
                     <button
                         type="button"
                         onClick={() => setSidebarOpen(true)}
-                        className="btn btn-ghost btn-circle btn-sm lg:hidden text-base-content hover:bg-base-200"
+                        className="btn btn-ghost btn-circle btn-sm xl:hidden text-base-content hover:bg-base-200"
                         aria-label="Open sidebar navigation"
                         title="Menu"
                     >
@@ -617,7 +617,7 @@ const Navbar = () => {
                 createPortal(
                     <AnimatePresence>
                         {sidebarOpen && (
-                            <div className="fixed inset-0 z-[100] lg:hidden">
+                            <div className="fixed inset-0 z-[100] xl:hidden">
                                 {/* Backdrop Blur Overlay */}
                                 <motion.div
                                     initial={{ opacity: 0 }}
@@ -635,7 +635,7 @@ const Navbar = () => {
                                     animate={{ x: 0 }}
                                     exit={{ x: '100%' }}
                                     transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                                    className="fixed right-0 top-0 bottom-0 z-[101] flex h-full h-dvh w-[85vw] max-w-sm flex-col justify-between overflow-y-auto border-l border-base-300/80 bg-base-100 p-5 shadow-2xl"
+                                    className="fixed right-0 top-0 bottom-0 z-[101] flex h-full h-dvh w-[85vw] max-w-sm sm:max-w-md md:max-w-[380px] flex-col justify-between overflow-y-auto border-l border-base-300/80 bg-base-100 p-5 shadow-2xl"
                                     role="dialog"
                                     aria-label="Sidebar navigation"
                                 >
