@@ -6,6 +6,9 @@ import { ThemeProvider } from './context/ThemeContext.jsx'
 import AuthProvider from './context/AuthProvider.jsx'
 import WatchlistProvider from './context/WatchlistContext.jsx'
 import { router } from './Routes/Routes.jsx'
+import { registerSW } from 'virtual:pwa-register'
+
+registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

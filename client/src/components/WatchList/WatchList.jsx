@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     FiBookmark,
@@ -10,8 +10,6 @@ import {
     FiTrash2,
     FiPlay,
     FiStar,
-    FiClock,
-    FiCalendar,
     FiSearch,
     FiSliders,
     FiCheckCircle,
@@ -25,23 +23,24 @@ import {
     FiX,
     FiPlus,
     FiArrowRight,
-    FiZap,
-    FiGlobe,
     FiCheck,
     FiAlertCircle,
     FiRefreshCw,
     FiChevronDown,
 } from 'react-icons/fi'
 import { useWatchlist } from '../../context/WatchlistContext'
+import {
+    getSeriesProgress,
+    advanceNextEpisode,
+    EPISODE_UPDATE_EVENT,
+} from '../../utils/episodeTracker'
 import GenreIcon from '../ui/GenreIcon'
 import RecentlyViewedRibbon from '../ui/RecentlyViewedRibbon'
 import {
     pageVariants,
-    sectionVariants,
     containerVariants,
     itemVariants,
     modalVariants,
-    defaultViewport,
 } from '../../animations/motionVariants'
 
 const STATUS_CONFIG = {
@@ -166,7 +165,6 @@ const WatchStatusDropdown = ({ status, onChange, align = 'top', className = '' }
 }
 
 const WatchList = () => {
-    const navigate = useNavigate()
     const {
         watchlist,
         removeFromWatchlist,
@@ -199,6 +197,29 @@ const WatchList = () => {
     const [clearConfirmOpen, setClearConfirmOpen] = useState(false)
     const [exportModalOpen, setExportModalOpen] = useState(false)
     const [copiedShare, setCopiedShare] = useState(false)
+    const [, setEpisodeTick] = useState(0)
+
+    // Reactive listener for episode progress changes
+    useEffect(() => {
+        const onUpdate = () => setEpisodeTick((t) => t + 1)
+        window.addEventListener(EPISODE_UPDATE_EVENT, onUpdate)
+        return () => window.removeEventListener(EPISODE_UPDATE_EVENT, onUpdate)
+    }, [])
+
+    const handleQuickAdvance = (e, item) => {
+        e.stopPropagation()
+        e.preventDefault()
+        const itemId = item.id || item._id
+        const next = advanceNextEpisode(itemId, item)
+        if (next) {
+            const updated = getSeriesProgress(itemId, item)
+            if (updated.isCompleted) {
+                updateItemStatus(itemId, 'completed')
+            } else {
+                updateItemStatus(itemId, 'watching')
+            }
+        }
+    }
 
     // Recommended Discovery Titles for Empty State
     const [discoverItems, setDiscoverItems] = useState([])
@@ -422,7 +443,7 @@ const WatchList = () => {
                 } else {
                     alert('Invalid JSON structure. Expected an array of media objects.')
                 }
-            } catch (err) {
+            } catch {
                 alert('Failed to parse JSON file.')
             }
         }
@@ -827,7 +848,8 @@ const WatchList = () => {
                                     {filteredWatchlist.map((item) => {
                                         const itemId = item.id || item._id
                                         const isSelected = selectedIds.has(itemId)
-                                        const statusObj = STATUS_CONFIG[item.status || 'plan_to_watch']
+                                        const isSeries = item.type === 'Series' || (item.runtime && (item.runtime.includes('Season') || item.runtime.includes('Episode')))
+                                        const seriesProgress = isSeries ? getSeriesProgress(itemId, item) : null
 
                                         return (
                                             <motion.article
@@ -912,7 +934,7 @@ const WatchList = () => {
                                                 </div>
 
                                                 {/* Content & Quick Status Selector */}
-                                                <div className="flex flex-1 flex-col justify-between p-3 space-y-2.5">
+                                                <div className="flex flex-1 flex-col justify-between p-3 space-y-2">
                                                     <div>
                                                         <Link
                                                             to={`/details/${itemId}`}
@@ -928,8 +950,45 @@ const WatchList = () => {
                                                         )}
                                                     </div>
 
+                                                    {/* Series Episode Progress Mini Widget */}
+                                                    {isSeries && seriesProgress && (
+                                                        <div className="space-y-1 rounded-xl bg-base-100/90 border border-base-300/80 p-2 shadow-2xs">
+                                                            <div className="flex items-center justify-between text-[10px] font-bold">
+                                                                <span className="text-base-content/70">
+                                                                    {seriesProgress.watchedCount}/{seriesProgress.totalEpisodes} eps
+                                                                </span>
+                                                                <span className="text-primary">{seriesProgress.percentage}%</span>
+                                                            </div>
+                                                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-base-300">
+                                                                <div
+                                                                    className="h-full bg-gradient-to-r from-primary to-secondary transition-all"
+                                                                    style={{ width: `${seriesProgress.percentage}%` }}
+                                                                />
+                                                            </div>
+                                                            {seriesProgress.nextEpisode ? (
+                                                                <div className="flex items-center justify-between pt-0.5">
+                                                                    <span className="text-[9px] text-base-content/60 font-semibold truncate max-w-[85px]">
+                                                                        Next: {seriesProgress.nextEpisode.code}
+                                                                    </span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => handleQuickAdvance(e, item)}
+                                                                        className="btn btn-primary btn-xs h-5 min-h-0 px-1.5 text-[9px] font-black rounded-md shadow-xs"
+                                                                        title={`Mark ${seriesProgress.nextEpisode.code} watched`}
+                                                                    >
+                                                                        +1 Ep
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="block text-[9px] text-emerald-500 font-bold text-center">
+                                                                    All Watched ✓
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+
                                                     {/* Status Dropdown Pill */}
-                                                    <div className="pt-1">
+                                                    <div className="pt-0.5">
                                                         <WatchStatusDropdown
                                                             status={item.status}
                                                             onChange={(val) => updateItemStatus(itemId, val)}
@@ -954,7 +1013,8 @@ const WatchList = () => {
                                         {filteredWatchlist.map((item) => {
                                             const itemId = item.id || item._id
                                             const isSelected = selectedIds.has(itemId)
-                                            const statusObj = STATUS_CONFIG[item.status || 'plan_to_watch']
+                                            const isSeries = item.type === 'Series' || (item.runtime && (item.runtime.includes('Season') || item.runtime.includes('Episode')))
+                                            const seriesProgress = isSeries ? getSeriesProgress(itemId, item) : null
 
                                             return (
                                                 <motion.div
@@ -997,6 +1057,11 @@ const WatchList = () => {
                                                                         VIP
                                                                     </span>
                                                                 )}
+                                                                {isSeries && seriesProgress && (
+                                                                    <span className="rounded bg-primary/15 text-primary px-2 py-0.5 text-[10px] font-bold border border-primary/20">
+                                                                        {seriesProgress.watchedCount}/{seriesProgress.totalEpisodes} eps ({seriesProgress.percentage}%)
+                                                                    </span>
+                                                                )}
                                                             </div>
 
                                                             <div className="flex flex-wrap items-center gap-2 text-[11px] text-base-content/60 font-medium">
@@ -1015,6 +1080,21 @@ const WatchList = () => {
                                                                         <span className="text-primary">
                                                                             {item.genres.slice(0, 2).join(', ')}
                                                                         </span>
+                                                                    </>
+                                                                )}
+                                                                {isSeries && seriesProgress?.nextEpisode && (
+                                                                    <>
+                                                                        <span>•</span>
+                                                                        <span className="text-secondary font-semibold">
+                                                                            Next: {seriesProgress.nextEpisode.code}
+                                                                        </span>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={(e) => handleQuickAdvance(e, item)}
+                                                                            className="btn btn-primary btn-xs h-4.5 min-h-0 px-1.5 text-[9px] font-bold rounded-md"
+                                                                        >
+                                                                            +1 Ep
+                                                                        </button>
                                                                     </>
                                                                 )}
                                                             </div>

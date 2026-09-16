@@ -22,6 +22,7 @@ import MediaCard from '../../ui/MediaCard'
 import GenreIcon from '../../ui/GenreIcon'
 import PersonAvatar from '../../ui/PersonAvatar'
 import CommunityReviews from '../reviews/CommunityReviews'
+import SeriesEpisodeTracker from '../series/SeriesEpisodeTracker'
 import {
     pageVariants,
     sectionVariants,
@@ -46,7 +47,6 @@ const DetailsPage = () => {
 
     useEffect(() => {
         let isMounted = true
-        setLoading(true)
 
         async function fetchDetails() {
             try {
@@ -534,6 +534,11 @@ const DetailsPage = () => {
                         </div>
                     </div>
                 </motion.div>
+
+                {/* Series Seasons & Episode Tracker (For Series and Multi-Season items) */}
+                {(item?.type === 'Series' || item?.runtime?.includes('Season') || item?.runtime?.includes('Episode')) && (
+                    <SeriesEpisodeTracker seriesItem={item} />
+                )}
 
                 {/* Interactive Community Reviews & Ratings Section */}
                 <CommunityReviews mediaItem={item} />

@@ -2,14 +2,11 @@ import { useState, useMemo, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-    FiUser,
     FiMail,
     FiAward,
     FiStar,
     FiClock,
-    FiFilm,
     FiTv,
-    FiSmile,
     FiCheckCircle,
     FiPlay,
     FiSettings,
@@ -25,7 +22,6 @@ import {
     FiHeart,
     FiX,
     FiCheck,
-    FiTrendingUp,
     FiMessageSquare,
     FiAlertTriangle,
     FiTrash2,
@@ -34,12 +30,16 @@ import { useAuth } from '../../context/AuthProvider'
 import { useWatchlist } from '../../context/WatchlistContext'
 import { getRecentViews } from '../../utils/recentViews'
 import { getUserReviews, deleteReview } from '../../utils/reviewsManager'
+import {
+    getOverallTvStats,
+    getSeriesProgress,
+    advanceNextEpisode,
+    EPISODE_UPDATE_EVENT,
+} from '../../utils/episodeTracker'
 import GenreIcon from '../../components/ui/GenreIcon'
 import {
     pageVariants,
-    sectionVariants,
     containerVariants,
-    itemVariants,
     modalVariants,
 } from '../../animations/motionVariants'
 
@@ -87,26 +87,51 @@ const Profile = () => {
     const [editModalOpen, setEditModalOpen] = useState(false)
     const [vipModalOpen, setVipModalOpen] = useState(false)
     const [copiedShare, setCopiedShare] = useState(false)
-    const [recentViews, setRecentViews] = useState([])
-    const [myReviews, setMyReviews] = useState([])
+    const [recentViews] = useState(() => getRecentViews())
+    const [reviewsTick, setReviewsTick] = useState(0)
+    const [allMedia, setAllMedia] = useState([])
+    const [episodeTick, setEpisodeTick] = useState(0)
 
-    // Sync recent views and user reviews
+    // Load media data and listen to episode progress updates
     useEffect(() => {
-        setRecentViews(getRecentViews())
-        setMyReviews(getUserReviews(profileData.displayName || user?.name))
-    }, [profileData.displayName, user?.name])
+        fetch('/AllData.json')
+            .then((r) => r.json())
+            .then((data) => setAllMedia(data))
+            .catch(() => {})
+
+        const onEpisodeUpdate = () => setEpisodeTick((t) => t + 1)
+        window.addEventListener(EPISODE_UPDATE_EVENT, onEpisodeUpdate)
+        return () => window.removeEventListener(EPISODE_UPDATE_EVENT, onEpisodeUpdate)
+    }, [])
+
+    const tvStats = useMemo(() => {
+        const catalog = allMedia.length > 0 ? allMedia : watchlist
+        void episodeTick
+        return getOverallTvStats(catalog)
+    }, [allMedia, watchlist, episodeTick])
+
+    const handleQuickAdvanceInProfile = (media) => {
+        const mediaId = media.id || media._id
+        const next = advanceNextEpisode(mediaId, media)
+        if (next) {
+            const updated = getSeriesProgress(mediaId, media)
+            if (updated.isCompleted) {
+                updateItemStatus(mediaId, 'completed')
+            } else {
+                updateItemStatus(mediaId, 'watching')
+            }
+        }
+    }
+
+    const myReviews = useMemo(() => {
+        void reviewsTick
+        return getUserReviews(profileData.displayName || user?.name)
+    }, [profileData.displayName, user?.name, reviewsTick])
 
     const handleDeleteMyReview = (reviewId) => {
         deleteReview(reviewId)
-        setMyReviews(getUserReviews(profileData.displayName || user?.name))
+        setReviewsTick((t) => t + 1)
     }
-
-    // Update display name if user logs in with new info
-    useEffect(() => {
-        if (user?.name && !localStorage.getItem('icsn_user_profile')) {
-            setProfileData((prev) => ({ ...prev, displayName: user.name }))
-        }
-    }, [user])
 
     const saveProfileChanges = (newData) => {
         setProfileData(newData)
@@ -206,10 +231,6 @@ const Profile = () => {
     // Filtered lists for activity tabs
     const watchingList = useMemo(() => watchlist.filter((i) => i.status === 'watching'), [watchlist])
     const completedList = useMemo(() => watchlist.filter((i) => i.status === 'completed'), [watchlist])
-    const planToWatchList = useMemo(
-        () => watchlist.filter((i) => !i.status || i.status === 'plan_to_watch'),
-        [watchlist]
-    )
 
     return (
         <motion.div
@@ -534,6 +555,102 @@ const Profile = () => {
                                     <span className="font-extrabold text-accent">Tier IV Master Member</span>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* TV Series Episode Binge Tracker Section */}
+                        <div className="rounded-3xl border border-base-300/80 bg-base-200/40 p-6 backdrop-blur-md space-y-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-base-300/60 pb-4">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/15 text-primary">
+                                        <FiTv className="h-5 w-5" />
+                                    </span>
+                                    <div>
+                                        <h3 className="font-display text-base font-bold text-base-content">
+                                            TV Series & Episode Progression
+                                        </h3>
+                                        <p className="text-xs text-base-content/60">
+                                            Detailed tracker of all series, seasons, and individual episodes watched.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-xl bg-base-100/80 border border-base-300/80 px-3 py-1.5 text-center">
+                                        <span className="block text-xs font-black text-primary">
+                                            {tvStats.totalEpisodesWatched}
+                                        </span>
+                                        <span className="block text-[9px] text-base-content/50 uppercase font-bold">
+                                            Episodes Watched
+                                        </span>
+                                    </div>
+                                    <div className="rounded-xl bg-base-100/80 border border-base-300/80 px-3 py-1.5 text-center">
+                                        <span className="block text-xs font-black text-secondary">
+                                            ~{tvStats.totalHours} hrs
+                                        </span>
+                                        <span className="block text-[9px] text-base-content/50 uppercase font-bold">
+                                            TV Watch Time
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {tvStats.activeSeriesList.length === 0 ? (
+                                <div className="rounded-2xl border border-dashed border-base-300 p-6 text-center">
+                                    <p className="text-xs text-base-content/60">
+                                        No active series in progress. Open any TV series and start checking off episodes to track your binge streak!
+                                    </p>
+                                    <Link to="/series" className="btn btn-primary btn-xs mt-3">
+                                        Explore Popular Series &rarr;
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {tvStats.activeSeriesList.map(({ media, progress: p }) => (
+                                        <div
+                                            key={media.id || media._id}
+                                            className="flex items-center gap-3 rounded-2xl border border-base-300/80 bg-base-100/80 p-3 shadow-xs hover:border-primary/50 transition-all"
+                                        >
+                                            <img
+                                                src={media.poster}
+                                                alt={media.title}
+                                                className="h-16 w-12 rounded-lg object-cover bg-base-300 shrink-0"
+                                            />
+                                            <div className="min-w-0 flex-1 space-y-1">
+                                                <Link
+                                                    to={`/details/${media.id || media._id}`}
+                                                    className="block font-bold text-xs text-base-content hover:text-primary truncate"
+                                                >
+                                                    {media.title}
+                                                </Link>
+                                                <div className="flex items-center justify-between text-[10px] text-base-content/70 font-semibold">
+                                                    <span>{p.watchedCount}/{p.totalEpisodes} eps</span>
+                                                    <span className="text-primary">{p.percentage}%</span>
+                                                </div>
+                                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-base-300">
+                                                    <div
+                                                        className="h-full bg-gradient-to-r from-primary to-secondary transition-all"
+                                                        style={{ width: `${p.percentage}%` }}
+                                                    />
+                                                </div>
+                                                {p.nextEpisode && (
+                                                    <div className="flex items-center justify-between pt-0.5">
+                                                        <span className="text-[9px] text-base-content/50 truncate max-w-[100px]">
+                                                            Next: {p.nextEpisode.code}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleQuickAdvanceInProfile(media)}
+                                                            className="btn btn-primary btn-xs h-4.5 min-h-0 px-1.5 text-[9px] font-bold rounded-md"
+                                                        >
+                                                            +1 Ep
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Quick Continue Watching Ribbon inside Analytics */}
